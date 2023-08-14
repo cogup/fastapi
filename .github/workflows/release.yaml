@@ -31,7 +31,7 @@ jobs:
         run: |
           echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
 
-
+          
       - name: Commit Changes to Main Branch
         run: |
           git config --local user.email "actions@github.com"
