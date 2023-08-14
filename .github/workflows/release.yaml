@@ -8,8 +8,8 @@ on:
     branches:
       - main
 
-permissions:
-  actions: write
+# permissions:
+#   actions: write
 
 jobs:
   build:
