@@ -40,16 +40,10 @@ jobs:
           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
           git checkout -b v${{ steps.get_version.outputs.version }}
           git add --all
-          git commit -m "Release v${{ steps.get_version.outputs.version }}"
-          git tag v${{ steps.get_version.outputs.version }}
+          git commit -m "Release ${{ steps.get_version.outputs.version }}"
+          git tag ${{ steps.get_version.outputs.version }}
           git push origin main --tags
 
       - name: Create Release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ steps.get_version.outputs.version }}
-          release_name: Release ${{ steps.get_version.outputs.version }}
-          draft: false
-          prerelease: false
+        run: |
+          gh release create ${{ steps.get_version.outputs.version }} --title "Release ${{ steps.get_version.outputs.version }}" --notes "Release ${{ steps.get_version.outputs.version }}" --repo ${{ github.repository }} --target main
