@@ -131,9 +131,17 @@ function getReferenceSchemaNameInner(
 }
 
 export function convertToPlural(resourceName: string): string {
+  if (resourceName.endsWith('y')) {
+    return resourceName.slice(0, -1) + 'ies';
+  }
+
   return resourceName.endsWith('s') ? resourceName : `${resourceName}s`;
 }
 
 export function convertToSingle(resourceName: string): string {
+  if (resourceName.endsWith('ies')) {
+    return resourceName.slice(0, -3) + 'y';
+  }
+
   return resourceName.endsWith('s') ? resourceName.slice(0, -1) : resourceName;
 }
