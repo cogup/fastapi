@@ -31,22 +31,9 @@ jobs:
           npm install
           npm run build
 
-      - name: Get App Version
-        id: get_version
-        run: |
-          echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
-
-      - name: Commit Changes to Main Branch
-        run: |
-          git config --local user.email "actions@github.com"
-          git config --local user.name "GitHub Actions"
-          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
-          git checkout -b v${{ steps.get_version.outputs.version }}
-          git add --all
-          git commit -m "Release ${{ steps.get_version.outputs.version }}"
-          git tag ${{ steps.get_version.outputs.version }}
-          git push origin main --tags
-
       - name: Create Release
-        run: |
-          gh release create ${{ steps.get_version.outputs.version }} --title "Release ${{ steps.get_version.outputs.version }}" --notes "Release ${{ steps.get_version.outputs.version }}" --repo ${{ github.repository }} --target main
+        uses: cogup/actions/lib-release@main
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          force-add: 
+            - dist
