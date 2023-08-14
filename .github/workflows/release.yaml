@@ -28,13 +28,11 @@ jobs:
 
       - name: Get App Version
         id: get_version
-        shell: bash
         run: |
           echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
 
 
       - name: Commit Changes to Main Branch
-        shell: bash
         run: |
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Actions"
