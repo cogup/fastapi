@@ -7,7 +7,7 @@
     "test": "jest --runInBand --detectOpenHandles --config=jest.config.js",
     "build": "tsc"
   },
-  "author": "Philippe Assis <codephilippe@gmail.com>",
+  "author": "Philippe Assis <philippe.assis@cogup.com>",
   "license": "MIT",
   "dependencies": {
     "@fastify/cors": "^8.2.1",
