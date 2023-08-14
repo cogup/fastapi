@@ -35,5 +35,4 @@ jobs:
         uses: cogup/actions/lib-release@main
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          force-add: 
-            - dist
+          force-add: dist
