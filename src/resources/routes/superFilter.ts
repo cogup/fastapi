@@ -1,7 +1,7 @@
 import dictPtBr from '../../dicts/pt_BR';
 import { Op } from 'sequelize';
 
-const { iLike, or } = Op;
+const { like, or } = Op;
 
 const spellingDictionary = dictPtBr;
 
@@ -19,7 +19,7 @@ function fixText(text: string): string[] {
 
 const formaCondition = (searchTerm: string) => {
   return {
-    [iLike]: `%${searchTerm}%`
+    [like]: `%${searchTerm}%`
   };
 };
 
@@ -31,10 +31,17 @@ const addTerm = (target: any[], fullTarget: string): any[] => {
   if (targetSplit.length > 1) {
     targetSplit.forEach((word) => {
       const formated = formaCondition(word);
+      const firstLetterUpper = formaCondition(word.charAt(0).toUpperCase() + word.slice(1));
+      const upperCase = formaCondition(word.toUpperCase());
+      const lowerCase = formaCondition(word.toLowerCase());
 
       if (history.indexOf(`%${word}%`) === -1) {
         history.push(`%${word}%`);
         target.push(formated);
+        target.push(firstLetterUpper);
+        target.push(firstLetterUpper);
+        target.push(upperCase);
+        target.push(lowerCase);
       }
     });
   }
