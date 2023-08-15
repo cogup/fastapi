@@ -94,7 +94,7 @@ export function generateOpenapiSchemas(
 
     const property: Property = {
       ...propertyType,
-      description: `${name} ${key}`
+      description: ''
     };
 
     if (
