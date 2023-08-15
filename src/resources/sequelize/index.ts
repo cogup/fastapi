@@ -55,6 +55,7 @@ export interface Column {
   binary?: boolean;
   length?: number;
   decimals?: number;
+  description?: string;
 }
 
 export interface Relationship {

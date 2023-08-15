@@ -130,6 +130,10 @@ export function generateOpenapiSchemas(
       property.nullable = true;
     }
 
+    if (column.description !== undefined) {
+      property.description = column.description;
+    }
+
     property['x-admin-type'] = column.type;
 
     properties[key] = property;
