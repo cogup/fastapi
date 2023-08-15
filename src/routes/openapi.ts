@@ -1,11 +1,11 @@
 import { FastifyReply } from 'fastify';
-import { createFullDoc } from '../resources/openapi/doc';
+import { DocData, createFullDoc } from '../resources/openapi/doc';
 import { Paths, Properties, Schema } from '../resources/openapi/openapiTypes';
 import { Routes, RoutesBuilder } from '../resources/routes';
 import { JSONSchema7 } from 'json-schema';
 
-export default function builderOpeapi(paths: Paths): Routes {
-  const doc = createFullDoc(paths);
+export default function builderOpeapi(data: DocData): Routes {
+  const doc = createFullDoc(data);
   const openapiSchema = objectToJSONSchema7(doc);
 
   const route = new RoutesBuilder('openapi');

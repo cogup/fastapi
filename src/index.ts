@@ -32,6 +32,10 @@ import { Options, Sequelize, SyncOptions } from 'sequelize';
 import { promisify } from 'util';
 import log from './resources/log';
 import * as fs from 'fs';
+import { DocInfo, ServerObject } from './resources/openapi/doc';
+
+// get package.json version
+const version = require('../package.json').version;
 
 export interface LoadSpecOptions {
   resources: Resources;
@@ -54,6 +58,8 @@ export interface FastAPIOptions {
   cors?: Cors;
   forceCreateTables?: boolean;
   listen?: FastifyListenOptions;
+  info?: DocInfo;
+  server?: ServerObject[];
 }
 
 export interface Cors {
@@ -65,6 +71,12 @@ export interface Models {
 }
 
 export class FastAPI {
+  info: DocInfo = {
+    title: 'FastAPI',
+    description: 'FastAPI',
+    version
+  };
+  servers: ServerObject[] = []
   listenConfig: FastifyListenOptions = {
     port: 3000,
     host: '0.0.0.0'
@@ -132,6 +144,22 @@ export class FastAPI {
       if (props.listen !== undefined) {
         this.listenConfig = props.listen;
       }
+
+      if (props.info !== undefined) {
+        this.info = props.info;
+      }
+
+      if(props.server !== undefined) {
+        this.servers = props.server
+      } else {
+        this.servers = [
+          {
+            url: `http://localhost:${this.listenConfig.port}`,
+            description: 'Local server'
+          }
+        ]
+      }
+      
     }
 
     this.api = api();
@@ -224,10 +252,16 @@ export class FastAPI {
 
     const healthPaths = routesToPaths(health);
 
-    const openapi = builderOpeapi({
+    const docPaths = {
       ...shemasPaths,
       ...healthPaths,
       ...paths
+    };
+
+    const openapi = builderOpeapi({
+      paths: docPaths,
+      info: this.info,
+      servers: this.servers
     });
 
     createRoutes.createRoutes(openapi);

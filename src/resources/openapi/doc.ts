@@ -9,24 +9,29 @@ interface PathItemObject {
   servers?: ServerObject[];
 }
 
-interface ServerObject {
+export interface ServerObject {
   url: string;
+  description?: string;
 }
 
-export function createFullDoc(paths: Paths): OpenAPI {
+export interface DocInfo {
+  title: string;
+  description: string;
+  version: string;
+}
+
+export interface DocData {
+  info: DocInfo;
+  paths: Paths;
+  servers: ServerObject[];
+}
+
+export function createFullDoc(data: DocData): OpenAPI {
   const openapi: OpenAPI = {
     openapi: '3.0.0',
-    info: {
-      title: process.env.APP_NAME || 'Fastapi',
-      description: process.env.APP_DESCRIPTION || 'Fastapi',
-      version: process.env.APP_VERSION || '1.0.0'
-    },
-    servers: [
-      {
-        url: process.env.APP_URL || 'http://localhost:3000'
-      }
-    ],
-    paths: resolvePaths(paths)
+    info: data.info,
+    servers: data.servers,
+    paths: resolvePaths(data.paths)
   };
 
   return convertOpenAPItoSchemas(openapi);
