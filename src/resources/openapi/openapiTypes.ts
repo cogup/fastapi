@@ -7,6 +7,7 @@ export interface OpenAPI {
   security?: SecurityRequirement[];
   tags?: Tag[];
   externalDocs?: ExternalDocumentation;
+  'x-admin'?: XAdminData;
 }
 
 export interface Properties {
@@ -137,26 +138,38 @@ export interface Operation {
   deprecated?: boolean;
   security?: SecurityRequirement[];
   servers?: Server[];
-  'x-admin'?: AdminInfo;
+  'x-admin'?: XAdminResource;
 }
 
-export interface AdminInfo {
+export interface XAdminData {
+  resources: XAdminResources;
+}
+
+export interface XAdminResources {
+  [path: string]: XAdminMethods;
+}
+
+export interface XAdminMethods {
+  [method: string]: XAdminResource;
+ }
+
+export interface XAdminResource {
   types: string[];
   groupName: string;
   resourceName: string;
-  references?: AdminReferences;
+  references?: XAdminReferences;
 }
 
-export interface AdminReferences {
-  list?: AdminReference;
-  search?: AdminReference;
+export interface XAdminReferences {
+  list?: XAdminReference;
+  search?: XAdminReference;
 }
 
-export interface AdminReference {
-  query?: AdminReferenceQuery;
+export interface XAdminReference {
+  query?: XAdminReferenceQuery;
 }
 
-export interface AdminReferenceQuery {
+export interface XAdminReferenceQuery {
   pageSize?: string;
   page?: string;
   order?: string;
@@ -164,7 +177,7 @@ export interface AdminReferenceQuery {
   searchTerm: string;
 }
 
-export interface AdminReferenceSearch {
+export interface XAdminReferencesearch {
   [key: string]: string;
 }
 
