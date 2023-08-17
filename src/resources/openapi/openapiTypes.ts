@@ -138,11 +138,11 @@ export interface Operation {
   deprecated?: boolean;
   security?: SecurityRequirement[];
   servers?: Server[];
-  'x-admin'?: XAdminResource;
+  'x-admin'?: AdminInfo;
 }
 
 export interface AdminData {
-  resouces: AdminResources;
+  resources: AdminResources;
 }
 
 export interface AdminResources {
@@ -157,19 +157,19 @@ export interface AdminInfo {
   types: string[];
   groupName: string;
   resourceName: string;
-  references?: XAdminReferences;
+  references?: AdminReferences;
 }
 
-export interface XAdminReferences {
-  list?: XAdminReference;
-  search?: XAdminReference;
+export interface AdminReferences {
+  list?: AdminReference;
+  search?: AdminReference;
 }
 
-export interface XAdminReference {
-  query?: XAdminReferenceQuery;
+export interface AdminReference {
+  query?: AdminReferenceQuery;
 }
 
-export interface XAdminReferenceQuery {
+export interface AdminReferenceQuery {
   pageSize?: string;
   page?: string;
   order?: string;
@@ -177,7 +177,7 @@ export interface XAdminReferenceQuery {
   searchTerm: string;
 }
 
-export interface XAdminReferencesearch {
+export interface AdminReferencesearch {
   [key: string]: string;
 }
 
