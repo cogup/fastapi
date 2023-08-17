@@ -1,6 +1,6 @@
 import { Resource } from '../sequelize';
 import { convertType } from './dataTypes';
-import { AdminData, AdminReferences, OpenAPI, Operation } from './openapiTypes';
+import { AdminData, AdminReferences, OpenAPI } from './openapiTypes';
 import { makeResponses } from './responses';
 import { convertToPlural, convertToSingle } from './utils';
 
@@ -86,7 +86,6 @@ export function generateOpenapiSchemas(
   const attributeKeys = Object.keys(model.getAttributes());
   const properties: SchemaProperties = {};
   const required: string[] = [];
-  const xAdminResources: XAdminResources = {};
 
   attributeKeys.forEach((key) => {
     const column = columns[key];
@@ -202,7 +201,7 @@ export function generateOpenapiSchemas(
   );
 
   const adminData: AdminData = {
-    resouces: {
+    resources: {
       [`/api/${pluralName}`]: {
         get: {
           types: (() => {

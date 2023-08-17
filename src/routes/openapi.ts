@@ -1,6 +1,6 @@
 import { FastifyReply } from 'fastify';
 import { DocData, createFullDoc } from '../resources/openapi/doc';
-import { Paths, Properties, Schema } from '../resources/openapi/openapiTypes';
+import { Properties } from '../resources/openapi/openapiTypes';
 import { Routes, RoutesBuilder } from '../resources/routes';
 import { JSONSchema7 } from 'json-schema';
 

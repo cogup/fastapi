@@ -224,6 +224,9 @@ export class FastAPI {
     const resources = this.resources;
     const tags = this.tags;
     const handlers = this.handlers;
+    const adminsData: AdminData = {
+      resources: {}
+    } 
 
     const createRoutes = new CreateRoutes(this.api);
     for (const key in this.resources) {
@@ -238,6 +241,8 @@ export class FastAPI {
         handlers,
         adminData
       });
+
+      adminsData.resources = { ...adminsData.resources, ...adminData.resources };
 
       shemasPaths = { ...shemasPaths, ...paths } as Paths;
     }
@@ -264,7 +269,8 @@ export class FastAPI {
     const openapi = builderOpeapi({
       paths: docPaths,
       info: this.info,
-      servers: this.servers
+      servers: this.servers,
+      admin: adminsData
     });
 
     createRoutes.createRoutes(openapi);

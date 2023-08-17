@@ -311,9 +311,9 @@ export class CreateRoutes {
         if (
           (operation['x-admin'] &&
             operation['x-admin'].types.includes('list')) ||
-          (adminData.resouces[path] &&
-            adminData.resouces[path].get &&
-            adminData.resouces[path].get.types.includes('list'))
+          (adminData.resources[path] &&
+            adminData.resources[path].get &&
+            adminData.resources[path].get.types.includes('list'))
         ) {
           return handler.getAll ?? getAll(resource);
         } else {
@@ -331,9 +331,9 @@ export class CreateRoutes {
         if (
           (operation['x-admin'] &&
             operation['x-admin'].types.includes('list')) ||
-          (adminData.resouces[path] &&
-            adminData.resouces[path].get &&
-            adminData.resouces[path].get.types.includes('list'))
+          (adminData.resources[path] &&
+            adminData.resources[path].get &&
+            adminData.resources[path].get.types.includes('list'))
         ) {
           return getAll(resource);
         } else {
