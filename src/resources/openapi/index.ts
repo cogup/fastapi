@@ -1,12 +1,6 @@
 import { Resource } from '../sequelize';
 import { convertType } from './dataTypes';
-import {
-  XAdminReferences,
-  OpenAPI,
-  Operation,
-  XAdminResource,
-  XAdminResources
-} from './openapiTypes';
+import { AdminData, AdminReferences, OpenAPI, Operation } from './openapiTypes';
 import { makeResponses } from './responses';
 import { convertToPlural, convertToSingle } from './utils';
 
@@ -207,74 +201,75 @@ export function generateOpenapiSchemas(
     makeAllResponseProperties()
   );
 
-  xAdminResources[`/api/${pluralName}`] = {
-    get: {
-      types: (() => {
-        if (search && search.length > 0) {
-          return ['list', 'search'];
-        } else {
-          return ['list'];
-        }
-      })(),
-      groupName,
-      resourceName: 'List',
-      references: (() => {
-        const references: XAdminReferences = {
-          list: {
-            query: {
-              pageSize: 'page_size',
-              page: 'page',
-              orderBy: 'order_by',
-              order: 'order',
-              searchTerm: 'search'
+  const adminData: AdminData = {
+    resouces: {
+      [`/api/${pluralName}`]: {
+        get: {
+          types: (() => {
+            if (search && search.length > 0) {
+              return ['list', 'search'];
+            } else {
+              return ['list'];
             }
-          }
-        };
+          })(),
+          groupName,
+          resourceName: 'List',
+          references: (() => {
+            const references: AdminReferences = {
+              list: {
+                query: {
+                  pageSize: 'page_size',
+                  page: 'page',
+                  orderBy: 'order_by',
+                  order: 'order',
+                  searchTerm: 'search'
+                }
+              }
+            };
 
-        if (search && search.length > 0) {
-          references.search = {
-            query: {
-              pageSize: 'page_size',
-              page: 'page',
-              orderBy: 'order_by',
-              order: 'order',
-              searchTerm: 'search'
+            if (search && search.length > 0) {
+              references.search = {
+                query: {
+                  pageSize: 'page_size',
+                  page: 'page',
+                  orderBy: 'order_by',
+                  order: 'order',
+                  searchTerm: 'search'
+                }
+              };
             }
-          };
+
+            return references;
+          })()
+        },
+        post: {
+          types: ['create'],
+          groupName,
+          resourceName: 'Create'
         }
-
-        return references;
-      })()
-    },
-    post: {
-      types: ['create'],
-      groupName,
-      resourceName: 'Create'
+      },
+      [`/api/${pluralName}/{id}`]: {
+        get: {
+          types: ['read'],
+          groupName,
+          resourceName: 'Read'
+        },
+        put: {
+          types: ['update'],
+          groupName,
+          resourceName: 'Update'
+        },
+        delete: {
+          types: ['delete'],
+          groupName,
+          resourceName: 'Delete'
+        }
+      }
     }
-  };
-
-  xAdminResources[`/api/${pluralName}/{id}`] = {
-    get: {
-      types: ['read'],
-      groupName,
-      resourceName: 'Read'
-    },
-    put: {
-      types: ['update'],
-      groupName,
-      resourceName: 'Update'
-    },
-    delete: {
-      types: ['delete'],
-      groupName,
-      resourceName: 'Delete'
-    }
-  };
+  }
 
   return {
-    "x-admin": {
-      resources: xAdminResources
-    },
+    'x-admin': adminData,
     paths: {
       [`/api/${pluralName}`]: {
         get: {

@@ -7,7 +7,7 @@ export interface OpenAPI {
   security?: SecurityRequirement[];
   tags?: Tag[];
   externalDocs?: ExternalDocumentation;
-  'x-admin'?: XAdminData;
+  'x-admin'?: AdminData;
 }
 
 export interface Properties {
@@ -141,19 +141,19 @@ export interface Operation {
   'x-admin'?: XAdminResource;
 }
 
-export interface XAdminData {
-  resources: XAdminResources;
+export interface AdminData {
+  resouces: AdminResources;
 }
 
-export interface XAdminResources {
-  [path: string]: XAdminMethods;
+export interface AdminResources {
+  [resourcePath: string]: AdminResource;
 }
 
-export interface XAdminMethods {
-  [method: string]: XAdminResource;
- }
+export interface AdminResource {
+  [resourceMethod: string]: AdminInfo;
+}
 
-export interface XAdminResource {
+export interface AdminInfo {
   types: string[];
   groupName: string;
   resourceName: string;
