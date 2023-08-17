@@ -1,5 +1,5 @@
 import { convertOpenAPItoSchemas } from './utils';
-import { OpenAPI, Paths } from './openapiTypes';
+import { OpenAPI, Paths, XAdminData } from './openapiTypes';
 
 interface PathObject {
   [path: string]: PathItemObject;
@@ -26,12 +26,13 @@ export interface DocData {
   servers: ServerObject[];
 }
 
-export function createFullDoc(data: DocData): OpenAPI {
+export function createFullDoc(data: DocData, xAdmin: XAdminData): OpenAPI {
   const openapi: OpenAPI = {
     openapi: '3.0.0',
     info: data.info,
     servers: data.servers,
-    paths: resolvePaths(data.paths)
+    paths: resolvePaths(data.paths),
+    'x-admin': xAdmin
   };
 
   return convertOpenAPItoSchemas(openapi);

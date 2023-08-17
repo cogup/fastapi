@@ -86,6 +86,7 @@ export function generateOpenapiSchemas(
   const attributeKeys = Object.keys(model.getAttributes());
   const properties: SchemaProperties = {};
   const required: string[] = [];
+  const xAdminResources: XAdminResources = {};
 
   attributeKeys.forEach((key) => {
     const column = columns[key];
