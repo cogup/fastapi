@@ -27,7 +27,7 @@ import {
 import healthRoute from './routes/health';
 import builderOpeapi from './routes/openapi';
 import { on, emit, remove, EventCallback } from './resources/events';
-import { Paths } from './resources/openapi/openapiTypes';
+import { AdminData, Paths } from './resources/openapi/openapiTypes';
 import { Options, Sequelize, SyncOptions } from 'sequelize';
 import { promisify } from 'util';
 import log from './resources/log';
@@ -228,12 +228,15 @@ export class FastAPI {
     const createRoutes = new CreateRoutes(this.api);
     for (const key in this.resources) {
       const resource = resources[key];
-      const paths = generateOpenapiSchemas(resource, tags).paths as Paths;
+      const openapiSchemas = generateOpenapiSchemas(resource, tags);
+      const paths = openapiSchemas.paths as Paths;
+      const adminData = openapiSchemas['x-admin'] as AdminData;
 
       createRoutes.createRouteResource({
         paths,
         resource,
-        handlers
+        handlers,
+        adminData
       });
 
       shemasPaths = { ...shemasPaths, ...paths } as Paths;

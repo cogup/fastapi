@@ -7,6 +7,7 @@ export interface OpenAPI {
   security?: SecurityRequirement[];
   tags?: Tag[];
   externalDocs?: ExternalDocumentation;
+  'x-admin'?: AdminData;
 }
 
 export interface Properties {
@@ -138,6 +139,18 @@ export interface Operation {
   security?: SecurityRequirement[];
   servers?: Server[];
   'x-admin'?: AdminInfo;
+}
+
+export interface AdminData {
+  resouces: AdminResources;
+}
+
+export interface AdminResources {
+  [resourcePath: string]: AdminResource;
+}
+
+export interface AdminResource {
+  [resourceMethod: string]: AdminInfo;
 }
 
 export interface AdminInfo {

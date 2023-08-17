@@ -10,7 +10,8 @@ import {
   Responses,
   Schema,
   Response,
-  Properties
+  Properties,
+  AdminData
 } from '../openapi/openapiTypes';
 import { FastifyInstance, RouteOptions } from 'fastify';
 import { makeResponses } from '../openapi/responses';
@@ -40,6 +41,7 @@ export interface ResourceProps {
   paths: Paths;
   handlers?: Handlers;
   resource: Resource;
+  adminData: AdminData;
 }
 
 export interface InnerOperation {
@@ -265,7 +267,7 @@ export class CreateRoutes {
     });
   }
 
-  createRouteResource({ paths, resource, handlers }: ResourceProps) {
+  createRouteResource({ paths, resource, handlers, adminData }: ResourceProps) {
     Object.entries(paths).forEach(([path, value]: [string, Path]) => {
       const innerOperation = getOperations(value);
 
@@ -281,7 +283,8 @@ export class CreateRoutes {
           path,
           method,
           resource,
-          operation
+          operation,
+          adminData
         );
 
         if (handler === undefined) {
@@ -298,15 +301,19 @@ export class CreateRoutes {
     path: string,
     method: string,
     resource: Resource,
-    operation: Operation
+    operation: Operation,
+    adminData: AdminData
   ): RouteHandler {
     if (handlers !== undefined && handlers[path] !== undefined) {
       const handler = handlers[path];
 
       if (method === 'get') {
         if (
-          operation['x-admin'] &&
-          operation['x-admin'].types.includes('list')
+          (operation['x-admin'] &&
+            operation['x-admin'].types.includes('list')) ||
+          (adminData.resouces[path] &&
+            adminData.resouces[path].get &&
+            adminData.resouces[path].get.types.includes('list'))
         ) {
           return handler.getAll ?? getAll(resource);
         } else {
@@ -322,8 +329,11 @@ export class CreateRoutes {
     } else {
       if (method === 'get') {
         if (
-          operation['x-admin'] &&
-          operation['x-admin'].types.includes('list')
+          (operation['x-admin'] &&
+            operation['x-admin'].types.includes('list')) ||
+          (adminData.resouces[path] &&
+            adminData.resouces[path].get &&
+            adminData.resouces[path].get.types.includes('list'))
         ) {
           return getAll(resource);
         } else {

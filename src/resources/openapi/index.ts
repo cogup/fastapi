@@ -1,6 +1,6 @@
 import { Resource } from '../sequelize';
 import { convertType } from './dataTypes';
-import { AdminReferences, OpenAPI, Operation } from './openapiTypes';
+import { AdminData, AdminReferences, OpenAPI, Operation } from './openapiTypes';
 import { makeResponses } from './responses';
 import { convertToPlural, convertToSingle } from './utils';
 
@@ -200,143 +200,81 @@ export function generateOpenapiSchemas(
     makeAllResponseProperties()
   );
 
-  const operationGet: Operation = {
-    summary: `List ${name}`,
-    description: `List and search ${name}`,
-    tags: resolveTags(name, tags.list),
-    'x-admin': {
-      types: (() => {
-        if (search && search.length > 0) {
-          return ['list', 'search'];
-        } else {
-          return ['list'];
-        }
-      })(),
-      groupName,
-      resourceName: 'List',
-      references: (() => {
-        const references: AdminReferences = {
-          list: {
-            query: {
-              pageSize: 'page_size',
-              page: 'page',
-              orderBy: 'order_by',
-              order: 'order',
-              searchTerm: 'search'
+  const adminData: AdminData = {
+    resouces: {
+      [`/api/${pluralName}`]: {
+        get: {
+          types: (() => {
+            if (search && search.length > 0) {
+              return ['list', 'search'];
+            } else {
+              return ['list'];
             }
-          }
-        };
+          })(),
+          groupName,
+          resourceName: 'List',
+          references: (() => {
+            const references: AdminReferences = {
+              list: {
+                query: {
+                  pageSize: 'page_size',
+                  page: 'page',
+                  orderBy: 'order_by',
+                  order: 'order',
+                  searchTerm: 'search'
+                }
+              }
+            };
 
-        if (search && search.length > 0) {
-          references.search = {
-            query: {
-              pageSize: 'page_size',
-              page: 'page',
-              orderBy: 'order_by',
-              order: 'order',
-              searchTerm: 'search'
+            if (search && search.length > 0) {
+              references.search = {
+                query: {
+                  pageSize: 'page_size',
+                  page: 'page',
+                  orderBy: 'order_by',
+                  order: 'order',
+                  searchTerm: 'search'
+                }
+              };
             }
-          };
-        }
 
-        return references;
-      })()
-    },
-    parameters: [
-      {
-        name: 'page',
-        in: 'query',
-        description: 'Page number',
-        schema: {
-          type: 'integer',
-          minimum: 1
+            return references;
+          })()
+        },
+        post: {
+          types: ['create'],
+          groupName,
+          resourceName: 'Create'
         }
       },
-      {
-        name: 'page_size',
-        in: 'query',
-        description: 'Number of items per page',
-        schema: {
-          type: 'integer',
-          minimum: 1,
-          maximum: 100
-        }
-      },
-      {
-        name: 'search',
-        in: 'query',
-        description: 'Search query string',
-        schema: {
-          type: 'string'
-        }
-      },
-      {
-        name: 'order_by',
-        in: 'query',
-        description: 'Order field',
-        schema: {
-          type: 'string',
-          enum: getOrderByEnumValues()
-        }
-      },
-      {
-        name: 'order',
-        in: 'query',
-        description: 'Order direction',
-        schema: {
-          type: 'string',
-          enum: ['desc', 'asc']
+      [`/api/${pluralName}/{id}`]: {
+        get: {
+          types: ['read'],
+          groupName,
+          resourceName: 'Read'
+        },
+        put: {
+          types: ['update'],
+          groupName,
+          resourceName: 'Update'
+        },
+        delete: {
+          types: ['delete'],
+          groupName,
+          resourceName: 'Delete'
         }
       }
-    ],
-    responses: responseResolvedList
-  };
+    }
+  }
 
   return {
+    'x-admin': adminData,
     paths: {
       [`/api/${pluralName}`]: {
         get: {
           summary: `List ${name}`,
           description: `List and search ${name}`,
           tags: resolveTags(name, tags.list),
-          'x-admin': {
-            types: (() => {
-              if (search && search.length > 0) {
-                return ['list', 'search'];
-              } else {
-                return ['list'];
-              }
-            })(),
-            groupName,
-            resourceName: 'List',
-            references: (() => {
-              const references: AdminReferences = {
-                list: {
-                  query: {
-                    pageSize: 'page_size',
-                    page: 'page',
-                    orderBy: 'order_by',
-                    order: 'order',
-                    searchTerm: 'search'
-                  }
-                }
-              };
-
-              if (search && search.length > 0) {
-                references.search = {
-                  query: {
-                    pageSize: 'page_size',
-                    page: 'page',
-                    orderBy: 'order_by',
-                    order: 'order',
-                    searchTerm: 'search'
-                  }
-                };
-              }
-
-              return references;
-            })()
-          },
           parameters: [
             {
               name: 'page',
@@ -388,11 +326,6 @@ export function generateOpenapiSchemas(
         },
         post: {
           summary: `Create ${name}`,
-          'x-admin': {
-            types: ['create'],
-            groupName,
-            resourceName: 'Create'
-          },
           description: `Create ${name}`,
           tags: resolveTags(name, tags.create),
           requestBody: {
@@ -411,11 +344,6 @@ export function generateOpenapiSchemas(
       [`/api/${pluralName}/{id}`]: {
         get: {
           summary: `Get ${name} by ID`,
-          'x-admin': {
-            types: ['read'],
-            groupName,
-            resourceName: 'Read'
-          },
           description: `Get ${name} by ID`,
           tags: resolveTags(name, tags.read),
           parameters: [
@@ -433,11 +361,6 @@ export function generateOpenapiSchemas(
         },
         put: {
           summary: `Update ${name}`,
-          'x-admin': {
-            types: ['update'],
-            groupName,
-            resourceName: 'Update'
-          },
           description: `Update ${name}`,
           tags: resolveTags(name, tags.update),
           parameters: [
@@ -465,11 +388,6 @@ export function generateOpenapiSchemas(
         },
         delete: {
           summary: `Delete ${name}`,
-          'x-admin': {
-            types: ['delete'],
-            groupName,
-            resourceName: 'Delete'
-          },
           description: `Delete ${name}`,
           tags: resolveTags(name, tags.delete),
           parameters: [
