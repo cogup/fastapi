@@ -60,7 +60,8 @@ describe('FastAPI', () => {
           name: 'updatedAt',
           type: ColumnType.DATE
         })
-        .build();
+        .build()
+        .schema.build();
 
       const mockHello = {
         message: 'Hello, world!'
@@ -166,7 +167,7 @@ describe('FastAPI', () => {
 
       const messageTable = new TableBuilder({
         name: 'messages',
-        parent: schema,
+        schema: schema,
         auto: [AutoColumn.ID, AutoColumn.CREATED_AT, AutoColumn.UPDATED_AT]
       })
         .column({
@@ -185,19 +186,20 @@ describe('FastAPI', () => {
           type: ColumnType.STRING,
           protected: true
         })
-        .buildTable();
+        .build();
       
       new TableBuilder({
         name: 'chats',
-        parent: schema,
+        schema: schema,
         auto: [AutoColumn.ID, AutoColumn.CREATED_AT, AutoColumn.UPDATED_AT]
-      }).column({
-        name: 'messageId',
-        type: ColumnType.INT,
-        allowNull: false,
-        reference: messageTable
       })
-      .buildTable()
+        .column({
+          name: 'messageId',
+          type: ColumnType.INT,
+          allowNull: false,
+          reference: messageTable
+        })
+        .build();
 
       const sequelize = new Sequelize('sqlite::memory:', {
         logging: false

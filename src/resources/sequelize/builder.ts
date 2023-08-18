@@ -2,7 +2,7 @@ import { Column, ColumnType, Schema } from './index';
 
 export interface TableBuilderProps {
   name: string;
-  parent: SchemaBuilder;
+  schema: SchemaBuilder;
   auto: AutoColumn[];
 }
 
@@ -10,13 +10,13 @@ export class TableBuilder {
   name: string;
   columns: any[] = [];
   search: string[] = [];
-  parent: SchemaBuilder;
+  schema: SchemaBuilder;
   private builded: boolean = false;
   auto: AutoColumn[] = [];
 
   constructor(props: TableBuilderProps) {
     this.name = props.name;
-    this.parent = props.parent;
+    this.schema = props.schema;
     this.auto = props.auto;
   }
 
@@ -31,8 +31,8 @@ export class TableBuilder {
   }
 
   table(name: string) {
-    this.buildTable();
-    return this.parent.table(name);
+    this.build();
+    return this.schema.table(name);
   }
 
   private columnExists(name: string): boolean {
@@ -71,23 +71,18 @@ export class TableBuilder {
     }
   }
 
-  buildTable(): this {
+  build(): this {
     if (this.builded) return this;
     this.createdUpdated();
 
     this.builded = true;
-    this.parent.schema.tables.push({
+    this.schema.schema.tables.push({
       name: this.name,
       columns: this.columns,
       search: this.search
     });
 
     return this;
-  }
-
-  build(): Schema {
-    this.buildTable();
-    return this.parent.build();
   }
 }
 
@@ -115,7 +110,7 @@ export class SchemaBuilder {
   table(table: string): TableBuilder {
     return new TableBuilder({
       name: table,
-      parent: this,
+      schema: this,
       auto: this.auto
     });
   }
