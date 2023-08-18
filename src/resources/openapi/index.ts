@@ -238,7 +238,6 @@ export function generateOpenapiSchemas(
               return ['list'];
             }
           })(),
-          groupName,
           references: (() => {
             const references: AdminReferences = {
               list: {
@@ -261,21 +260,17 @@ export function generateOpenapiSchemas(
         },
         post: {
           types: ['create'],
-          groupName,
         }
       },
       [`/api/${pluralName}/{id}`]: {
         get: {
           types: ['read'],
-          groupName,
         },
         put: {
           types: ['update'],
-          groupName,
         },
         delete: {
           types: ['delete'],
-          groupName,
         }
       }
     }
