@@ -237,25 +237,6 @@ export function generateOpenapiSchemas(
             } else {
               return ['list'];
             }
-          })(),
-          references: (() => {
-            const references: AdminReferences = {
-              list: {
-                query: {
-                  searchTerm: 'search'
-                }
-              }
-            };
-
-            if (search && search.length > 0) {
-              references.search = {
-                query: {
-                  searchTerm: 'search'
-                }
-              };
-            }
-
-            return references;
           })()
         },
         post: {
