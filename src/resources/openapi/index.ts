@@ -211,7 +211,7 @@ export function generateOpenapiSchemas(
   const createProperties = makeCreateProperties(properties);
   const updateProperties = createProperties;
 
-  const responseProperties = removeProtected(properties);
+  const responseProperties = removeProtected(removeImutable(properties, false));
 
   const responseResolvedPost = makeResponses(
     name,
