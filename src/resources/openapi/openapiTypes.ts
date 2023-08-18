@@ -156,7 +156,7 @@ export interface AdminResource {
 export interface AdminResourceData {
   types: string[];
   groupName: string;
-  resourceName: string;
+  resourceName?: string;
   references?: AdminReferences;
 }
 
