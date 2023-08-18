@@ -25,14 +25,15 @@ import {
   generateResourcesFromJSON
 } from './resources/sequelize';
 import healthRoute from './routes/health';
-import builderOpeapi from './routes/openapi';
 import { on, emit, remove, EventCallback } from './resources/events';
-import { AdminData, Paths } from './resources/openapi/openapiTypes';
+import { AdminData, OpenAPI, Paths } from './resources/openapi/openapiTypes';
 import { Options, Sequelize, SyncOptions } from 'sequelize';
 import { promisify } from 'util';
 import log from './resources/log';
 import * as fs from 'fs';
 import { DocInfo, ServerObject } from './resources/openapi/doc';
+import builderOpenapi from './routes/openapi';
+import { JSONSchema7 } from 'json-schema';
 
 // get package.json version
 const version = require('../package.json').version;
@@ -110,6 +111,7 @@ export class FastAPI {
   private databaseLoaded = false;
   private listen: (options: FastifyListenOptions) => Promise<void>;
   sequelize?: Sequelize;
+  openapiSpec?: OpenAPI;
 
   constructor(props?: FastAPIOptions) {
     if (props) {
@@ -268,14 +270,16 @@ export class FastAPI {
       ...paths
     };
 
-    const openapi = builderOpeapi({
+    const openapi = builderOpenapi({
       paths: docPaths,
       info: this.info,
       servers: this.servers,
       admin: adminsData
     });
 
-    createRoutes.createRoutes(openapi);
+    this.openapiSpec = openapi.spec;
+
+    createRoutes.createRoutes(openapi.routes);
 
     createRoutes.api.setErrorHandler(function (
       error: any,

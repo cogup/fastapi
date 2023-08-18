@@ -1,28 +1,40 @@
 import { FastifyReply } from 'fastify';
 import { DocData, createFullDoc } from '../resources/openapi/doc';
-import { Properties } from '../resources/openapi/openapiTypes';
+import { OpenAPI, Properties } from '../resources/openapi/openapiTypes';
 import { Routes, RoutesBuilder } from '../resources/routes';
 import { JSONSchema7 } from 'json-schema';
 
-export default function builderOpeapi(data: DocData): Routes {
+export interface OpenApiBuilded {
+  spec: OpenAPI,
+  routes: Routes
+}
+
+export default function builderOpenapi(data: DocData): OpenApiBuilded {
   const doc = createFullDoc(data);
   const openapiSchema = objectToJSONSchema7(doc);
-
   const route = new RoutesBuilder('openapi');
-  const openapi = route
+
+  const openapiSpec = {
+    tags: ['Documentation'],
+    summary: 'Get OpenAPI JSON',
+    description: 'Get OpenAPI JSON',
+    responses: route.responses(200, openapiSchema.properties as Properties)
+  };
+
+  const routes = route
     .path('/openapi.json')
     .get({
-      tags: ['Documentation'],
-      summary: 'Get OpenAPI JSON',
-      description: 'Get OpenAPI JSON',
-      responses: route.responses(200, openapiSchema.properties as Properties),
+      ...openapiSpec,
       handler: (_request, reply: FastifyReply): void => {
         reply.send(doc);
       }
     })
     .build();
 
-  return openapi;
+  return {
+    spec: doc,
+    routes
+  };
 }
 
 export function objectToJSONSchema7(json: any): JSONSchema7 {

@@ -4,6 +4,7 @@ export interface TableBuilderProps {
   name: string;
   schema: SchemaBuilder;
   auto: AutoColumn[];
+  group?: string;
 }
 
 export class TableBuilder {
@@ -13,11 +14,13 @@ export class TableBuilder {
   schema: SchemaBuilder;
   private builded: boolean = false;
   auto: AutoColumn[] = [];
+  group?: string;
 
   constructor(props: TableBuilderProps) {
     this.name = props.name;
     this.schema = props.schema;
     this.auto = props.auto;
+    this.group = props.group;
   }
 
   column(column: Column): TableBuilder {
@@ -79,7 +82,8 @@ export class TableBuilder {
     this.schema.schema.tables.push({
       name: this.name,
       columns: this.columns,
-      search: this.search
+      search: this.search,
+      group: this.group
     });
 
     return this;

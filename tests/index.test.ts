@@ -186,7 +186,7 @@ describe('FastAPI', () => {
           protected: true
         })
         .build();
-      
+
       new TableBuilder({
         name: 'chats',
         schema: schema,
@@ -399,6 +399,78 @@ describe('FastAPI', () => {
       });
 
       expect(responseGet.statusCode).toBe(200);
+    });
+  });
+
+  describe('Test api', () => {
+    it('Teste Lib Api', async () => {
+      const fastAPI = new FastAPI({
+        listen: {
+          port: 30001
+        }
+      });
+
+      const schema = new SchemaBuilder({
+        auto: [AutoColumn.ID, AutoColumn.CREATED_AT, AutoColumn.UPDATED_AT]
+      });
+
+      const messageTable = new TableBuilder({
+        name: 'messages',
+        schema: schema,
+        auto: [AutoColumn.ID, AutoColumn.CREATED_AT, AutoColumn.UPDATED_AT],
+        group: 'msg'
+      })
+        .column({
+          name: 'name',
+          type: ColumnType.STRING,
+          allowNull: false
+        })
+        .build();
+
+      new TableBuilder({
+        name: 'chats',
+        schema: schema,
+        auto: [AutoColumn.ID, AutoColumn.CREATED_AT, AutoColumn.UPDATED_AT],
+        group: 'msg'
+      })
+        .column({
+          name: 'messageId',
+          type: ColumnType.INT,
+          allowNull: false,
+          reference: messageTable
+        })
+        .build();
+
+      new TableBuilder({
+        name: 'settings',
+        schema: schema,
+        auto: [AutoColumn.ID, AutoColumn.CREATED_AT, AutoColumn.UPDATED_AT]
+      }).column({
+        name: 'name',
+        type: ColumnType.STRING
+      })
+        .build();
+
+      const sequelize = new Sequelize('sqlite::memory:', {
+        logging: false
+      });
+
+      fastAPI.setSchema(schema.build());
+
+      fastAPI.setDatabaseInstance(sequelize);
+
+      fastAPI.loadAll();
+      const resources = fastAPI.openapiSpec?.['x-admin']?.resources;
+
+      expect(
+        resources?.['/api/messages'].get.groupName
+      ).toBe('msg');
+      expect(
+        resources?.['/api/chats'].get.groupName
+      ).toBe('msg');
+      expect(
+        resources?.['/api/settings'].get.groupName
+      ).toBe('setting');
     });
   });
 });

@@ -101,11 +101,10 @@ export function generateOpenapiSchemas(
   resource: Resource,
   tags: Tags
 ): OpenAPI {
-  const { model, columns, search, name } = resource;
+  const { model, columns, search, name, group } = resource;
   const resourceName = name.toLowerCase();
-  const singleName = convertToSingle(name);
+  const groupName = group !== undefined ? group.toLowerCase() : convertToSingle(name);
   const pluralName = convertToPlural(resourceName);
-  const groupName = singleName.charAt(0).toUpperCase() + singleName.slice(1);
 
   const attributeKeys = Object.keys(model.getAttributes());
   const properties: SchemaProperties = {};

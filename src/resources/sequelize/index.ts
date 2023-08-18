@@ -17,6 +17,7 @@ export interface Table {
   name: string;
   columns: Column[];
   search?: string[];
+  group?: string;
 }
 
 export enum ColumnType {
@@ -78,6 +79,7 @@ export interface Resource {
   protectedColumns: string[];
   privateColumns: string[];
   noPropagateColumns: string[];
+  group?: string;
 }
 
 export interface Resources {
@@ -114,6 +116,7 @@ export function generateResourcesFromJSON(
       columns: {},
       search: table.search,
       name: table.name,
+      group: table.group,
       privateColumns,
       protectedColumns,
       noPropagateColumns: [...privateColumns, ...protectedColumns]
