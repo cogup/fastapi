@@ -286,9 +286,9 @@ export function generateOpenapiSchemas(
     paths: {
       [`/api/${pluralName}`]: {
         get: {
-          summary: `List ${name}`,
-          description: `List and search ${name}`,
-          tags: resolveTags(name, tags.list),
+          summary: `List ${groupName}`,
+          description: `List and search ${groupName}`,
+          tags: resolveTags(groupName, tags.list),
           parameters: [
             {
               name: 'page',
@@ -339,9 +339,9 @@ export function generateOpenapiSchemas(
           responses: responseResolvedList
         },
         post: {
-          summary: `Create ${name}`,
-          description: `Create ${name}`,
-          tags: resolveTags(name, tags.create),
+          summary: `Create ${groupName}`,
+          description: `Create ${groupName}`,
+          tags: resolveTags(groupName, tags.create),
           requestBody: {
             content: {
               'application/json': {
@@ -357,14 +357,14 @@ export function generateOpenapiSchemas(
       },
       [`/api/${pluralName}/{id}`]: {
         get: {
-          summary: `Get ${name} by ID`,
-          description: `Get ${name} by ID`,
-          tags: resolveTags(name, tags.read),
+          summary: `Get ${groupName} by ID`,
+          description: `Get ${groupName} by ID`,
+          tags: resolveTags(groupName, tags.read),
           parameters: [
             {
               name: 'id',
               in: 'path',
-              description: `${name} ID`,
+              description: `${groupName} ID`,
               schema: {
                 type: 'integer'
               },
@@ -374,14 +374,14 @@ export function generateOpenapiSchemas(
           responses: responseResolvedGet
         },
         put: {
-          summary: `Update ${name}`,
-          description: `Update ${name}`,
-          tags: resolveTags(name, tags.update),
+          summary: `Update ${groupName}`,
+          description: `Update ${groupName}`,
+          tags: resolveTags(groupName, tags.update),
           parameters: [
             {
               name: 'id',
               in: 'path',
-              description: `${name} ID`,
+              description: `${groupName} ID`,
               schema: {
                 type: 'integer'
               },
@@ -401,14 +401,14 @@ export function generateOpenapiSchemas(
           responses: responseResolvedPut
         },
         delete: {
-          summary: `Delete ${name}`,
-          description: `Delete ${name}`,
-          tags: resolveTags(name, tags.delete),
+          summary: `Delete ${groupName}`,
+          description: `Delete ${groupName}`,
+          tags: resolveTags(groupName, tags.delete),
           parameters: [
             {
               name: 'id',
               in: 'path',
-              description: `${name} ID`,
+              description: `${groupName} ID`,
               schema: {
                 type: 'integer'
               },
