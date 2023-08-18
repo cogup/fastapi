@@ -4,7 +4,8 @@ import {
   FastAPI,
   makeResponses,
   RoutesBuilder,
-  SchemaBuilder
+  SchemaBuilder,
+  TableBuilder
 } from '../src/index';
 import { Sequelize } from 'sequelize';
 import { ColumnType } from '../src/resources/sequelize';
@@ -163,8 +164,11 @@ describe('FastAPI', () => {
         auto: [AutoColumn.ID, AutoColumn.CREATED_AT, AutoColumn.UPDATED_AT]
       });
 
-      const helloSchema = schema
-        .table('messages')
+      const messageTable = new TableBuilder({
+        name: 'messages',
+        parent: schema,
+        auto: [AutoColumn.ID, AutoColumn.CREATED_AT, AutoColumn.UPDATED_AT]
+      })
         .column({
           name: 'message',
           type: ColumnType.CODE,
@@ -181,20 +185,25 @@ describe('FastAPI', () => {
           type: ColumnType.STRING,
           protected: true
         })
-        .table('chats')
-        .column({
-          name: 'messageId',
-          type: ColumnType.INT,
-          allowNull: false,
-          reference: 'messages'
-        })
-        .build();
+        .buildTable();
+      
+      new TableBuilder({
+        name: 'chats',
+        parent: schema,
+        auto: [AutoColumn.ID, AutoColumn.CREATED_AT, AutoColumn.UPDATED_AT]
+      }).column({
+        name: 'messageId',
+        type: ColumnType.INT,
+        allowNull: false,
+        reference: messageTable
+      })
+      .buildTable()
 
       const sequelize = new Sequelize('sqlite::memory:', {
         logging: false
       });
 
-      fastAPI.setSchema(helloSchema);
+      fastAPI.setSchema(schema.build());
 
       fastAPI.setDatabaseInstance(sequelize);
     });
@@ -258,7 +267,7 @@ describe('FastAPI', () => {
       expect(responseGet.statusCode).toBe(200);
 
       const { data, meta } = responseGet.json();
-      const responseGetJson = data.map(
+      const dataClean = data.map(
         (
           item: Record<string, string | number>
         ): Record<string, string | number> => {
@@ -268,7 +277,7 @@ describe('FastAPI', () => {
         }
       );
 
-      expect({ data, meta }).toEqual({
+      expect({ data: dataClean, meta }).toEqual({
         data: [
           {
             id: 2,

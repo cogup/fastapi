@@ -71,8 +71,8 @@ export class TableBuilder {
     }
   }
 
-  buildTable(): void {
-    if (this.builded) return;
+  buildTable(): this {
+    if (this.builded) return this;
     this.createdUpdated();
 
     this.builded = true;
@@ -81,6 +81,8 @@ export class TableBuilder {
       columns: this.columns,
       search: this.search
     });
+
+    return this;
   }
 
   build(): Schema {
