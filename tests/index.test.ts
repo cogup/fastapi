@@ -9,7 +9,6 @@ import {
 } from '../src/index';
 import { Sequelize } from 'sequelize';
 import { ColumnType } from '../src/resources/sequelize';
-import assert from 'assert';
 
 describe('FastAPI', () => {
   describe('Lib and Loaders', () => {
