@@ -76,7 +76,7 @@ export class FastAPI {
     description: 'FastAPI',
     version
   };
-  servers: ServerObject[] = []
+  servers: ServerObject[] = [];
   listenConfig: FastifyListenOptions = {
     port: 3000,
     host: '0.0.0.0'
@@ -149,17 +149,16 @@ export class FastAPI {
         this.info = props.info;
       }
 
-      if(props.server !== undefined) {
-        this.servers = props.server
+      if (props.server !== undefined) {
+        this.servers = props.server;
       } else {
         this.servers = [
           {
             url: `http://localhost:${this.listenConfig.port}`,
             description: 'Local server'
           }
-        ]
+        ];
       }
-      
     }
 
     this.api = api();
@@ -226,7 +225,7 @@ export class FastAPI {
     const handlers = this.handlers;
     const adminsData: AdminData = {
       resources: {}
-    } 
+    };
 
     const createRoutes = new CreateRoutes(this.api);
     for (const key in this.resources) {
@@ -242,7 +241,10 @@ export class FastAPI {
         adminData
       });
 
-      adminsData.resources = { ...adminsData.resources, ...adminData.resources };
+      adminsData.resources = {
+        ...adminsData.resources,
+        ...adminData.resources
+      };
 
       shemasPaths = { ...shemasPaths, ...paths } as Paths;
     }
@@ -284,7 +286,7 @@ export class FastAPI {
     });
   }
 
-  load() {
+  loadAll() {
     this.loadSchema();
     this.loadRoutes();
   }
@@ -318,6 +320,7 @@ export class FastAPI {
   }
 
   async start(): Promise<void> {
+    this.loadAll();
     await this.connect();
     await this.listen(this.listenConfig);
   }

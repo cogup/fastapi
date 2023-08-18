@@ -138,7 +138,7 @@ export interface Operation {
   deprecated?: boolean;
   security?: SecurityRequirement[];
   servers?: Server[];
-  'x-admin'?: AdminInfo;
+  'x-admin'?: AdminResourceData;
 }
 
 export interface AdminData {
@@ -150,10 +150,10 @@ export interface AdminResources {
 }
 
 export interface AdminResource {
-  [resourceMethod: string]: AdminInfo;
+  [resourceMethod: string]: AdminResourceData;
 }
 
-export interface AdminInfo {
+export interface AdminResourceData {
   types: string[];
   groupName: string;
   resourceName: string;

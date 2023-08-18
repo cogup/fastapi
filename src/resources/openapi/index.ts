@@ -1,6 +1,11 @@
 import { Resource } from '../sequelize';
 import { convertType } from './dataTypes';
-import { AdminData, AdminReferences, OpenAPI } from './openapiTypes';
+import {
+  AdminData,
+  AdminReferences,
+  OpenAPI,
+  Properties
+} from './openapiTypes';
 import { makeResponses } from './responses';
 import { convertToPlural, convertToSingle } from './utils';
 
@@ -34,6 +39,7 @@ interface Property {
   readOnly?: boolean;
   writeOnly?: boolean;
   'x-admin-type'?: string;
+  protected?: boolean;
 }
 
 interface SchemaProperties {
@@ -73,6 +79,24 @@ const removeImutable = (
   return newProperties;
 };
 
+const removeProtected = (props: SchemaProperties): SchemaProperties => {
+  const newProperties: SchemaProperties = {};
+
+  Object.entries(props).forEach(([key, value]) => {
+    const result = value.protected;
+
+    delete value.protected;
+
+    if (result === true) {
+      return;
+    }
+
+    newProperties[key] = value;
+  });
+
+  return newProperties;
+};
+
 export function generateOpenapiSchemas(
   resource: Resource,
   tags: Tags
@@ -89,6 +113,11 @@ export function generateOpenapiSchemas(
 
   attributeKeys.forEach((key) => {
     const column = columns[key];
+
+    if (column.private) {
+      return;
+    }
+
     const attribute = model.getAttributes()[key];
     const propertyType = convertType(attribute.type.constructor.name);
 
@@ -135,6 +164,7 @@ export function generateOpenapiSchemas(
     }
 
     property['x-admin-type'] = column.type;
+    property.protected = column.protected;
 
     properties[key] = property;
     if (!attribute.allowNull || column.required) {
@@ -142,13 +172,13 @@ export function generateOpenapiSchemas(
     }
   });
 
-  const makeAllResponseProperties = (): any => {
+  const makeAllResponseProperties = (props: Properties): any => {
     return {
       data: {
         type: 'array',
         properties: {
           type: 'object',
-          properties: { ...properties }
+          properties: props
         }
       },
       meta: {
@@ -163,12 +193,8 @@ export function generateOpenapiSchemas(
     };
   };
 
-  const makeRequestProperties = (): SchemaProperties => {
-    return removeImutable(properties, false);
-  };
-
-  const makeCreateUpdateProperties = (): SchemaProperties => {
-    const postProperties = { ...properties };
+  const makeCreateProperties = (prop: SchemaProperties): SchemaProperties => {
+    const postProperties = { ...prop };
     delete postProperties.id;
     delete postProperties.createdAt;
     delete postProperties.updatedAt;
@@ -178,26 +204,28 @@ export function generateOpenapiSchemas(
   const getOrderByEnumValues = (): string[] => {
     const sortFields = Object.keys(properties);
     return sortFields.map((field) =>
-      field.startsWith('-') ? field.substr(1) : field
+      field.startsWith('-') ? field.substring(1) : field
     );
   };
 
-  const createUpdateProperties = makeCreateUpdateProperties();
+  const createProperties = makeCreateProperties(properties);
+  const updateProperties = removeProtected(createProperties);
 
-  const requestProperties = makeRequestProperties();
+  const responseProperties = removeProtected(properties);
 
   const responseResolvedPost = makeResponses(
     name,
     201,
-    requestProperties,
+    responseProperties,
     true
   );
-  const responseResolvedDelete = makeResponses(name, 204, requestProperties);
-  const responseResolvedGetAndPut = makeResponses(name, 200, requestProperties);
+  const responseResolvedDelete = makeResponses(name, 204, responseProperties);
+  const responseResolvedGet = makeResponses(name, 200, responseProperties);
+  const responseResolvedPut = responseResolvedGet;
   const responseResolvedList = makeResponses(
     name,
     200,
-    makeAllResponseProperties()
+    makeAllResponseProperties(responseProperties)
   );
 
   const adminData: AdminData = {
@@ -217,10 +245,6 @@ export function generateOpenapiSchemas(
             const references: AdminReferences = {
               list: {
                 query: {
-                  pageSize: 'page_size',
-                  page: 'page',
-                  orderBy: 'order_by',
-                  order: 'order',
                   searchTerm: 'search'
                 }
               }
@@ -229,10 +253,6 @@ export function generateOpenapiSchemas(
             if (search && search.length > 0) {
               references.search = {
                 query: {
-                  pageSize: 'page_size',
-                  page: 'page',
-                  orderBy: 'order_by',
-                  order: 'order',
                   searchTerm: 'search'
                 }
               };
@@ -265,7 +285,7 @@ export function generateOpenapiSchemas(
         }
       }
     }
-  }
+  };
 
   return {
     'x-admin': adminData,
@@ -286,7 +306,7 @@ export function generateOpenapiSchemas(
               }
             },
             {
-              name: 'page_size',
+              name: 'pageSize',
               in: 'query',
               description: 'Number of items per page',
               schema: {
@@ -304,7 +324,7 @@ export function generateOpenapiSchemas(
               }
             },
             {
-              name: 'order_by',
+              name: 'orderBy',
               in: 'query',
               description: 'Order field',
               schema: {
@@ -333,7 +353,7 @@ export function generateOpenapiSchemas(
               'application/json': {
                 schema: {
                   type: 'object',
-                  properties: createUpdateProperties
+                  properties: createProperties
                 }
               }
             }
@@ -357,7 +377,7 @@ export function generateOpenapiSchemas(
               required: true
             }
           ],
-          responses: responseResolvedGetAndPut
+          responses: responseResolvedGet
         },
         put: {
           summary: `Update ${name}`,
@@ -379,12 +399,12 @@ export function generateOpenapiSchemas(
               'application/json': {
                 schema: {
                   type: 'object',
-                  properties: createUpdateProperties
+                  properties: updateProperties
                 }
               }
             }
           },
-          responses: responseResolvedGetAndPut
+          responses: responseResolvedPut
         },
         delete: {
           summary: `Delete ${name}`,

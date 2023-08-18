@@ -1,6 +1,7 @@
 import { DataTypes, Model, Sequelize } from 'sequelize';
 import * as fs from 'fs';
 import { convertToSingle } from '../openapi/utils';
+import { TableBuilder } from './builder';
 
 export type DataTypesResult =
   | DataTypes.StringDataType
@@ -32,7 +33,7 @@ export enum ColumnType {
   INT = 'int',
   SERIAL = 'int',
   FLOAT = 'float',
-  CODE = 'code',
+  CODE = 'code'
 }
 
 export interface Column {
@@ -44,9 +45,11 @@ export interface Column {
   max?: number;
   imutable?: boolean;
   required?: boolean;
+  private?: boolean;
+  protected?: boolean;
   unique?: boolean;
   defaultValue?: any;
-  reference?: string;
+  reference?: string | TableBuilder;
   primaryKey?: boolean;
   allowNull?: boolean;
   search?: string[];
@@ -72,10 +75,21 @@ export interface Resource {
   columns: Record<string, Column>;
   relationships?: Relationship[];
   search?: string[];
+  protectedColumns: string[];
+  privateColumns: string[];
+  noPropagateColumns: string[];
 }
 
 export interface Resources {
   [resurceName: string]: Resource;
+}
+
+export function getReference(reference: string | TableBuilder): string {
+  if (typeof reference === 'string') {
+    return reference;
+  }
+
+  return reference.name;
 }
 
 export function generateResourcesFromJSON(
@@ -89,11 +103,20 @@ export function generateResourcesFromJSON(
     const tableName = getTableName(table.name);
     const singleName = convertToSingle(tableName);
     const resurceName = getResourceName(table.name);
+    const privateColumns = table.columns
+      .filter((column) => column.private)
+      .map((column) => column.name);
+    const protectedColumns = table.columns
+      .filter((column) => column.protected)
+      .map((column) => column.name);
     const resource = {
       primaryKey: null,
       columns: {},
       search: table.search,
-      name: table.name
+      name: table.name,
+      privateColumns,
+      protectedColumns,
+      noPropagateColumns: [...privateColumns, ...protectedColumns]
     } as Resource;
 
     for (const column of table.columns) {
@@ -146,7 +169,7 @@ export function generateResourcesFromJSON(
         continue;
       }
 
-      const tableName = getTableName(column.reference);
+      const tableName = getTableName(getReference(column.reference));
 
       const referencedTable = getResourceName(tableName);
       const referencedModel = resources[referencedTable].model;

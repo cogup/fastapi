@@ -8,6 +8,7 @@ import {
 } from '../src/index';
 import { Sequelize } from 'sequelize';
 import { ColumnType } from '../src/resources/sequelize';
+import assert from 'assert';
 
 describe('FastAPI', () => {
   describe('Lib and Loaders', () => {
@@ -169,6 +170,17 @@ describe('FastAPI', () => {
           type: ColumnType.CODE,
           allowNull: false
         })
+        .column({
+          name: 'privateData',
+          type: ColumnType.STRING,
+          defaultValue: 'privateDefault',
+          private: true
+        })
+        .column({
+          name: 'protectedData',
+          type: ColumnType.STRING,
+          protected: true
+        })
         .table('chats')
         .column({
           name: 'messageId',
@@ -184,8 +196,6 @@ describe('FastAPI', () => {
 
       fastAPI.setSchema(helloSchema);
 
-      // fastAPI.api.log.level = 'silent';
-
       fastAPI.setDatabaseInstance(sequelize);
     });
 
@@ -194,7 +204,6 @@ describe('FastAPI', () => {
     });
 
     it('should start the server', async () => {
-      fastAPI.load();
       await fastAPI.start();
     });
 
@@ -203,7 +212,8 @@ describe('FastAPI', () => {
         method: 'POST',
         url: '/api/messages',
         payload: {
-          message: 'Hello, world!'
+          message: 'Hello, world!',
+          protectedData: 'protected'
         }
       });
 
@@ -211,12 +221,32 @@ describe('FastAPI', () => {
         method: 'POST',
         url: '/api/messages',
         payload: {
-          message: 'Hello, world 2!'
+          message: 'Hello, world 2!',
+          protectedData: 'protected'
         }
       });
 
       expect(responsePost.statusCode).toBe(201);
+
+      const data1 = responsePost.json();
+      delete data1.createdAt;
+      delete data1.updatedAt;
+
+      expect(data1).toEqual({
+        id: 1,
+        message: 'Hello, world!'
+      });
+
       expect(responsePost2.statusCode).toBe(201);
+
+      const data2 = responsePost2.json();
+      delete data2.createdAt;
+      delete data2.updatedAt;
+
+      expect(data2).toEqual({
+        id: 2,
+        message: 'Hello, world 2!'
+      });
     });
 
     it('should get', async () => {
@@ -345,7 +375,8 @@ describe('FastAPI', () => {
         method: 'POST',
         url: '/api/chats',
         payload: {
-          messageId: 1
+          messageId: 1,
+          protectedData: 'protected'
         }
       });
 

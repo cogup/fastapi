@@ -9,7 +9,7 @@ export function getAll(resource: Resource): RouteHandler {
   return async (request: any, reply: any) => {
     try {
       const page = parseInt(request.query.page, 10) || 1;
-      const pageSize = parseInt(request.query.page_size, 10) || 10;
+      const pageSize = parseInt(request.query.pageSize, 10) || 10;
       const searchTerm = request.query.search;
       const order = request.query.order || 'desc';
       const orderBy = request.query.orderBy || 'updatedAt';
@@ -24,7 +24,8 @@ export function getAll(resource: Resource): RouteHandler {
         where: searchFilter,
         offset,
         limit: pageSize,
-        order: [[orderBy, order]]
+        order: [[orderBy, order]],
+        attributes: { exclude: resource.noPropagateColumns }
       });
 
       const totalPages = Math.ceil(data.count / pageSize);
@@ -51,7 +52,9 @@ export function getAll(resource: Resource): RouteHandler {
 export function getOne(resource: Resource): RouteHandler {
   return async (request: any, reply: any) => {
     try {
-      const data = await resource.model.findByPk(request.params.id);
+      const data = await resource.model.findByPk(request.params.id, {
+        attributes: { exclude: resource.noPropagateColumns }
+      });
       const values = data?.dataValues;
 
       if (!values) {
@@ -72,7 +75,23 @@ export function getOne(resource: Resource): RouteHandler {
 export function create(resource: Resource): RouteHandler {
   return async (request: any, reply: any) => {
     try {
+      if (resource.privateColumns.length) {
+        for (const column of resource.privateColumns) {
+          if (request.body[column] !== undefined) {
+            reply.status(400).send({ error: `Cannot set ${column}.` });
+            return;
+          }
+        }
+      }
+
       const data = await resource.model.create(request.body);
+
+      if (resource.noPropagateColumns.length) {
+        for (const column of resource.noPropagateColumns) {
+          delete data.dataValues[column];
+        }
+      }
+
       reply.status(201).send(data);
       emit(resource.name, 'create', null, data);
     } catch (err) {
@@ -86,6 +105,15 @@ export function create(resource: Resource): RouteHandler {
 export function update(resource: Resource): RouteHandler {
   return async (request: any, reply: any) => {
     try {
+      if (resource.privateColumns.length) {
+        for (const column of resource.privateColumns) {
+          if (request.body[column] !== undefined) {
+            reply.status(400).send({ error: `Cannot set ${column}.` });
+            return;
+          }
+        }
+      }
+
       const data = await resource.model.findByPk(request.params.id);
       const value = data?.dataValues;
 
@@ -95,6 +123,12 @@ export function update(resource: Resource): RouteHandler {
       }
 
       await data.update(request.body);
+
+      if (resource.noPropagateColumns.length) {
+        for (const column of resource.noPropagateColumns) {
+          delete data.dataValues[column];
+        }
+      }
 
       reply.send(data);
       emit(resource.name, 'update', null, value.rows);
