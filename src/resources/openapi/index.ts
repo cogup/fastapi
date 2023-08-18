@@ -209,7 +209,7 @@ export function generateOpenapiSchemas(
   };
 
   const createProperties = makeCreateProperties(properties);
-  const updateProperties = removeProtected(createProperties);
+  const updateProperties = createProperties;
 
   const responseProperties = removeProtected(properties);
 

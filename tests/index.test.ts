@@ -316,7 +316,8 @@ describe('FastAPI', () => {
         method: 'PUT',
         url: '/api/messages/1',
         payload: {
-          message: 'Hello, world 3!'
+          message: 'Hello, world 3!',
+          protectedData: 'protected 2'
         }
       });
 
