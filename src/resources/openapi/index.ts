@@ -2,7 +2,6 @@ import { Resource } from '../sequelize';
 import { convertType } from './dataTypes';
 import {
   AdminData,
-  AdminReferences,
   OpenAPI,
   Properties
 } from './openapiTypes';
@@ -97,14 +96,30 @@ const removeProtected = (props: SchemaProperties): SchemaProperties => {
   return newProperties;
 };
 
+export interface HandlerPaths {
+  many: string;
+  single: string;
+}
+
+export function generatePaths(name: string): HandlerPaths {
+  const resourceName = name.toLowerCase();
+  const pluralName = convertToPlural(resourceName);
+
+  return {
+    many: `/api/${pluralName}`,
+    single: `/api/${pluralName}/{id}`,
+  };
+}
+
 export function generateOpenapiSchemas(
   resource: Resource,
   tags: Tags
 ): OpenAPI {
   const { model, columns, search, name, group } = resource;
-  const resourceName = name.toLowerCase();
-  const groupName = group !== undefined ? group.toLowerCase() : convertToSingle(name);
-  const pluralName = convertToPlural(resourceName);
+  const groupName =
+    group !== undefined ? group.toLowerCase() : convertToSingle(name);
+    group !== undefined ? group.toLowerCase() : convertToSingle(name);
+  const handlerPaths = generatePaths(name);
 
   const attributeKeys = Object.keys(model.getAttributes());
   const properties: SchemaProperties = {};
@@ -229,7 +244,7 @@ export function generateOpenapiSchemas(
 
   const adminData: AdminData = {
     resources: {
-      [`/api/${pluralName}`]: {
+      [handlerPaths.many]: {
         get: {
           types: (() => {
             if (search && search.length > 0) {
@@ -240,18 +255,18 @@ export function generateOpenapiSchemas(
           })()
         },
         post: {
-          types: ['create'],
+          types: ['create']
         }
       },
-      [`/api/${pluralName}/{id}`]: {
+      [handlerPaths.single]: {
         get: {
-          types: ['read'],
+          types: ['read']
         },
         put: {
-          types: ['update'],
+          types: ['update']
         },
         delete: {
-          types: ['delete'],
+          types: ['delete']
         }
       }
     }
@@ -260,7 +275,7 @@ export function generateOpenapiSchemas(
   return {
     'x-admin': adminData,
     paths: {
-      [`/api/${pluralName}`]: {
+      [handlerPaths.many]: {
         get: {
           summary: `List ${groupName}`,
           description: `List and search ${groupName}`,
@@ -331,7 +346,7 @@ export function generateOpenapiSchemas(
           responses: responseResolvedPost
         }
       },
-      [`/api/${pluralName}/{id}`]: {
+      [handlerPaths.single]: {
         get: {
           summary: `Get ${groupName} by ID`,
           description: `Get ${groupName} by ID`,

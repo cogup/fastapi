@@ -9,6 +9,7 @@ import {
 } from '../src/index';
 import { Sequelize } from 'sequelize';
 import { ColumnType } from '../src/resources/sequelize';
+import { Create, HandlerBuilder } from '../src/routes/builders';
 
 describe('FastAPI', () => {
   describe('Lib and Loaders', () => {
@@ -406,7 +407,7 @@ describe('FastAPI', () => {
     it('Teste Lib Api', async () => {
       const fastAPI = new FastAPI({
         listen: {
-          port: 30001
+          port: 3000
         }
       });
 
@@ -445,10 +446,11 @@ describe('FastAPI', () => {
         name: 'settings',
         schema: schema,
         auto: [AutoColumn.ID, AutoColumn.CREATED_AT, AutoColumn.UPDATED_AT]
-      }).column({
-        name: 'name',
-        type: ColumnType.STRING
       })
+        .column({
+          name: 'name',
+          type: ColumnType.STRING
+        })
         .build();
 
       const sequelize = new Sequelize('sqlite::memory:', {
@@ -460,17 +462,100 @@ describe('FastAPI', () => {
       fastAPI.setDatabaseInstance(sequelize);
 
       fastAPI.loadAll();
-      const resources = fastAPI.openapiSpec?.['x-admin']?.resources;
+    });
+  });
 
-      // expect(
-      //   resources?.['/api/messages'].get.groupName
-      // ).toBe('msg');
-      // expect(
-      //   resources?.['/api/chats'].get.groupName
-      // ).toBe('msg');
-      // expect(
-      //   resources?.['/api/settings'].get.groupName
-      // ).toBe('setting');
+  describe('Test Decorations', () => {
+    it('Test Handlers', async () => {
+      const fastAPI = new FastAPI({
+        listen: {
+          port: 30002
+        }
+      });
+
+      const schema = new SchemaBuilder({
+        auto: [AutoColumn.ID, AutoColumn.CREATED_AT, AutoColumn.UPDATED_AT]
+      });
+
+      const messages = new TableBuilder({
+        name: 'messages',
+        schema: schema,
+        auto: [AutoColumn.ID, AutoColumn.CREATED_AT, AutoColumn.UPDATED_AT],
+        group: 'msg'
+      })
+        .column({
+          name: 'name',
+          type: ColumnType.STRING,
+          allowNull: false
+        })
+        .build();
+
+      const chats = new TableBuilder({
+        name: 'chats',
+        schema: schema,
+        auto: [AutoColumn.ID, AutoColumn.CREATED_AT, AutoColumn.UPDATED_AT],
+        group: 'msg'
+      })
+        .column({
+          name: 'messageId',
+          type: ColumnType.INT,
+          allowNull: false,
+          reference: messages
+        })
+        .build();
+
+      class MyHandler extends HandlerBuilder {
+        @Create(messages)
+        async messagesCreate(_request: FastifyRequest, reply: FastifyReply) {
+          reply.status(201).send({
+            message: 'Hello, Message!'
+          });
+        }
+
+        @Create(chats)
+        async chatCreate(_request: FastifyRequest, reply: FastifyReply) {
+          reply.status(201).send({
+            message: 'Hello, Chat!'
+          });
+        }
+      }
+
+      const sequelize = new Sequelize('sqlite::memory:', {
+        logging: false
+      });
+
+      fastAPI.setSchema(schema.build());
+      fastAPI.setDatabaseInstance(sequelize);
+
+      fastAPI.addHandlers(MyHandler);
+
+      fastAPI.loadAll();
+
+      const data = await fastAPI.api.inject({
+        method: 'POST',
+        url: '/api/messages',
+        payload: {
+          messageId: 1,
+          protectedData: 'protected'
+        }
+      });
+
+      expect(data.json()).toBe({
+        message: 'Hello, Message!'
+      });
+
+      const data2 = await fastAPI.api.inject({
+        method: 'POST',
+        url: '/api/chats',
+        payload: {
+          messageId: 1,
+          protectedData: 'protected'
+        }
+      });
+
+      expect(data2.json()).toBe({
+        message: 'Hello, Chat!'
+      });
     });
   });
 });
