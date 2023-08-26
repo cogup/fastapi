@@ -25,6 +25,14 @@ export enum MethodType {
   PATCH = 'patch'
 }
 
+export enum HandlerMethodType { 
+  GET_ALL = 'getAll',
+  GET_ONE = 'getOne',
+  CREATE = 'create',
+  UPDATE = 'update',
+  REMOVE = 'remove'
+}
+
 export interface HandlerMethods {
   getAll?: RouteHandler;
   getOne?: RouteHandler;
