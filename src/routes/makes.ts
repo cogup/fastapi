@@ -81,7 +81,7 @@ export function getPathByMethod(
 export class MakeHandlers {
   [key: string]: any;
 
-  constructor(_fastapi: FastAPI) {}
+  onLoad(_fastapi: FastAPI) {}
 
   getHandlers(): Handlers {
     const handlers: Handlers = {};
@@ -168,7 +168,7 @@ export function Patch(route: string | Route) {
 export class MakeRouters {
   [key: string]: any;
 
-  constructor(_fastapi: FastAPI) {}
+  onLoad(_fastapi: FastAPI) {}
 
   getRoutes(): Routes {
     const routes: Routes = {};

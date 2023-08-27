@@ -116,6 +116,7 @@ export class FastAPI {
   private listen: (options: FastifyListenOptions) => Promise<void>;
   sequelize?: Sequelize;
   openapiSpec?: OpenAPI;
+  private afterLoad: MakeHandlers | MakeRouters[] = [];
 
   constructor(props?: FastAPIOptions) {
     if (props) {
@@ -328,10 +329,19 @@ export class FastAPI {
     }
   }
 
+  afterLoadExecute() {
+    if (this.afterLoad) {
+      this.afterLoad.forEach((builder: MakeHandlers | MakeRouters) => {
+        builder.onLoad(this);
+      });
+    }
+  }
+
   async start(): Promise<void> {
     this.loadAll();
     await this.connect();
     await this.listen(this.listenConfig);
+    this.afterLoadExecute();
   }
 
   //Resources
@@ -346,8 +356,9 @@ export class FastAPI {
     if (routes instanceof RoutesBuilder || routes instanceof PathBuilder) {
       routes = routes.build();
     } else if (typeof routes === 'function') {
-      const builder = new routes(this);
+      const builder = new routes();
       routes = builder.getRoutes();
+      this.afterLoad?.push(builder);
     }
 
     this.routes.push(routes);
@@ -355,8 +366,9 @@ export class FastAPI {
 
   addHandlers(handlers: Handlers | typeof MakeHandlers): void {
     if (typeof handlers === 'function') {
-      const builder = new handlers(this);
+      const builder = new handlers();
       handlers = builder.getHandlers();
+      this.afterLoad?.push(builder);
     }
 
     this.handlers = { ...this.handlers, ...handlers };

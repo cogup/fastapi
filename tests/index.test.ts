@@ -582,10 +582,16 @@ describe('FastAPI', () => {
       const { Get, Post } = Decorators;
 
       class MyRoutes extends Decorators.MakeRouters {
+        port: number = 0;
+
+        onLoad(fastapi: FastAPI): void {
+          this.port = fastapi.listenConfig.port ?? 0;
+        }
+
         @Get('/test')
         test1(_request: FastifyRequest, reply: FastifyReply) {
           reply.status(200).send({
-            message: 'Test get'
+            message: `Test get in port ${this.port}`
           });
         }
 
@@ -629,13 +635,15 @@ describe('FastAPI', () => {
 
       fastAPI.loadRoutes();
 
+      fastAPI.afterLoadExecute();
+
       const data = await fastAPI.api.inject({
         method: 'GET',
         url: '/test'
       });
 
       expect(data.json()).toEqual({
-        message: 'Test get'
+        message: `Test get in port ${fastAPI.listenConfig.port}`
       });
 
       const data2 = await fastAPI.api.inject({
