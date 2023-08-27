@@ -107,7 +107,7 @@ export class MakeHandlers {
           handlers[path] = {};
         }
 
-        handlers[path][handler.HandlerMethodType] = this[methodName];
+        handlers[path][handler.HandlerMethodType] = this[methodName].bind(this);
       }
     }
 
@@ -193,7 +193,7 @@ export class MakeRouters {
 
         routes[path][route.methodType] = {
           ...rest,
-          handler: this[methodName]
+          handler: this[methodName].bind(this)
         };
       }
     }
