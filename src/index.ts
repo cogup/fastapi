@@ -344,7 +344,7 @@ export class FastAPI {
     if (routes instanceof RoutesBuilder || routes instanceof PathBuilder) {
       routes = routes.build();
     } else if (typeof routes === 'function') {
-      const builder = new routes();
+      const builder = new routes(this);
       routes = builder.getRoutes();
     }
 
@@ -353,7 +353,7 @@ export class FastAPI {
 
   addHandlers(handlers: Handlers | typeof MakeHandlers): void {
     if (typeof handlers === 'function') {
-      const builder = new handlers();
+      const builder = new handlers(this);
       handlers = builder.getHandlers();
     }
 

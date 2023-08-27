@@ -8,6 +8,7 @@ import {
 } from '../resources/routes';
 import { TableBuilder } from '../resources/sequelize/builder';
 import 'reflect-metadata';
+import { FastAPI } from 'src';
 
 interface HandlerItem {
   resourceName: string;
@@ -79,6 +80,8 @@ export function getPathByMethod(
 
 export class MakeHandlers {
   [key: string]: any;
+
+  constructor(_fastapi: FastAPI) {}
 
   getHandlers(): Handlers {
     const handlers: Handlers = {};
@@ -164,6 +167,8 @@ export function Patch(route: string | Route) {
 
 export class MakeRouters {
   [key: string]: any;
+
+  constructor(_fastapi: FastAPI) {}
 
   getRoutes(): Routes {
     const routes: Routes = {};
