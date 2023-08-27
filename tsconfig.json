@@ -10,7 +10,12 @@
         "esModuleInterop": true,
         "forceConsistentCasingInFileNames": true,
         "emitDecoratorMetadata": true,
-        "experimentalDecorators": true
+        "experimentalDecorators": true,
+        "paths": {
+            "@cogup/fastap/*": [
+                "src/*"
+            ]
+        },
     },
     "include": [
         "src/**/*.ts",
