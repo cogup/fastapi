@@ -11,6 +11,10 @@ import { Sequelize } from 'sequelize';
 import { ColumnType } from '../src/resources/sequelize';
 import { Create, HandlerBuilder } from '../src/routes/builders';
 
+function getRandomPort() {
+  return Math.floor(Math.random() * 65535) + 1;
+}
+
 describe('FastAPI', () => {
   describe('Lib and Loaders', () => {
     it('should initialize FastAPI with default values if no parameters are passed', () => {
@@ -407,7 +411,7 @@ describe('FastAPI', () => {
     it('Teste Lib Api', async () => {
       const fastAPI = new FastAPI({
         listen: {
-          port: 3000
+          port: getRandomPort()
         }
       });
 
@@ -466,10 +470,10 @@ describe('FastAPI', () => {
   });
 
   describe('Test Decorations', () => {
-    it('Test Handlers', async () => {
+    it('Test Routes', async () => {
       const fastAPI = new FastAPI({
         listen: {
-          port: 30002
+          port: getRandomPort()
         }
       });
 
@@ -484,9 +488,8 @@ describe('FastAPI', () => {
         group: 'msg'
       })
         .column({
-          name: 'name',
+          name: 'message',
           type: ColumnType.STRING,
-          allowNull: false
         })
         .build();
 
@@ -497,23 +500,21 @@ describe('FastAPI', () => {
         group: 'msg'
       })
         .column({
-          name: 'messageId',
-          type: ColumnType.INT,
-          allowNull: false,
-          reference: messages
+          name: 'message',
+          type: ColumnType.STRING
         })
         .build();
 
       class MyHandler extends HandlerBuilder {
         @Create(messages)
-        async messagesCreate(_request: FastifyRequest, reply: FastifyReply) {
+        messagesCreate(_request: FastifyRequest, reply: FastifyReply) {
           reply.status(201).send({
             message: 'Hello, Message!'
           });
         }
 
         @Create(chats)
-        async chatCreate(_request: FastifyRequest, reply: FastifyReply) {
+        chatCreate(_request: FastifyRequest, reply: FastifyReply) {
           reply.status(201).send({
             message: 'Hello, Chat!'
           });
@@ -540,7 +541,7 @@ describe('FastAPI', () => {
         }
       });
 
-      expect(data.json()).toBe({
+      expect(data.json()).toEqual({
         message: 'Hello, Message!'
       });
 
@@ -553,7 +554,96 @@ describe('FastAPI', () => {
         }
       });
 
-      expect(data2.json()).toBe({
+      expect(data2.json()).toEqual({
+        message: 'Hello, Chat!'
+      });
+    });
+
+    it('Test Handlers', async () => {
+      const fastAPI = new FastAPI({
+        listen: {
+          port: getRandomPort()
+        }
+      });
+
+      const schema = new SchemaBuilder({
+        auto: [AutoColumn.ID, AutoColumn.CREATED_AT, AutoColumn.UPDATED_AT]
+      });
+
+      const messages = new TableBuilder({
+        name: 'messages',
+        schema: schema,
+        auto: [AutoColumn.ID, AutoColumn.CREATED_AT, AutoColumn.UPDATED_AT],
+        group: 'msg'
+      })
+        .column({
+          name: 'message',
+          type: ColumnType.STRING
+        })
+        .build();
+
+      const chats = new TableBuilder({
+        name: 'chats',
+        schema: schema,
+        auto: [AutoColumn.ID, AutoColumn.CREATED_AT, AutoColumn.UPDATED_AT],
+        group: 'msg'
+      })
+        .column({
+          name: 'message',
+          type: ColumnType.STRING
+        })
+        .build();
+
+      class MyHandler extends HandlerBuilder {
+        @Create(messages)
+        messagesCreate(_request: FastifyRequest, reply: FastifyReply) {
+          reply.status(201).send({
+            message: 'Hello, Message!'
+          });
+        }
+
+        @Create(chats)
+        chatCreate(_request: FastifyRequest, reply: FastifyReply) {
+          reply.status(201).send({
+            message: 'Hello, Chat!'
+          });
+        }
+      }
+
+      const sequelize = new Sequelize('sqlite::memory:', {
+        logging: false
+      });
+
+      fastAPI.setSchema(schema.build());
+      fastAPI.setDatabaseInstance(sequelize);
+
+      fastAPI.addHandlers(MyHandler);
+
+      fastAPI.loadAll();
+
+      const data = await fastAPI.api.inject({
+        method: 'POST',
+        url: '/api/messages',
+        payload: {
+          messageId: 1,
+          protectedData: 'protected'
+        }
+      });
+
+      expect(data.json()).toEqual({
+        message: 'Hello, Message!'
+      });
+
+      const data2 = await fastAPI.api.inject({
+        method: 'POST',
+        url: '/api/chats',
+        payload: {
+          messageId: 1,
+          protectedData: 'protected'
+        }
+      });
+
+      expect(data2.json()).toEqual({
         message: 'Hello, Chat!'
       });
     });
