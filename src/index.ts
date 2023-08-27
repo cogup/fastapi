@@ -38,7 +38,9 @@ import { TableBuilder } from './resources/sequelize/builder';
 import { MakeHandlers, MakeRouters, getResourceName } from './routes/makes';
 
 // get package.json version
-const version = require('../package.json').version;
+const rootPath = process.cwd();
+const packagePath = `${rootPath}/package.json`;
+const version = require(packagePath).version;
 
 export interface LoadSpecOptions {
   resources: Resources;
