@@ -9,13 +9,7 @@ import {
 } from '../src/index';
 import { Sequelize } from 'sequelize';
 import { ColumnType } from '../src/resources/sequelize';
-import {
-  Create,
-  Get,
-  MakeHandlers,
-  MakeRouters,
-  Post
-} from '../src/routes/makes';
+import { Decorators } from '../src';
 
 const portsUsed: number[] = [];
 function getRandomPort() {
@@ -518,7 +512,9 @@ describe('FastAPI', () => {
         })
         .build();
 
-      class MyHandler extends MakeHandlers {
+      const { Create } = Decorators;
+
+      class MyHandler extends Decorators.MakeHandlers {
         @Create(messages)
         messagesCreate(_request: FastifyRequest, reply: FastifyReply) {
           reply.status(201).send({
@@ -583,7 +579,9 @@ describe('FastAPI', () => {
         message: string;
       }
 
-      class MyRoutes extends MakeRouters {
+      const { Get, Post } = Decorators;
+
+      class MyRoutes extends Decorators.MakeRouters {
         @Get('/test')
         test1(_request: FastifyRequest, reply: FastifyReply) {
           reply.status(200).send({

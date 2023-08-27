@@ -433,6 +433,7 @@ export {
 };
 export { FastifyReply as Reply, FastifyRequest as Request };
 export { DataTypes } from 'sequelize';
+export * as Decorators from './routes/makes';
 
 export function modelName(text: string): string {
   const name = text.charAt(0).toUpperCase();
