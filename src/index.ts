@@ -35,7 +35,7 @@ import * as fs from 'fs';
 import { DocInfo, ServerObject } from './resources/openapi/doc';
 import builderOpenapi from './routes/openapi';
 import { TableBuilder } from './resources/sequelize/builder';
-import { HandlerBuilder, getResourceName } from './routes/builders';
+import { MakeHandlers, MakeRouters, getResourceName } from './routes/makes';
 
 // get package.json version
 const version = require('../package.json').version;
@@ -232,6 +232,7 @@ export class FastAPI {
     };
 
     const createRoutes = new CreateRoutes(this.api);
+
     for (const key in this.resources) {
       const resource = resources[key];
       const openapiSchemas = generateOpenapiSchemas(resource, tags);
@@ -337,16 +338,21 @@ export class FastAPI {
   }
 
   // Routes
-  addRoutes(routes: Routes | RoutesBuilder | PathBuilder): void {
+  addRoutes(
+    routes: Routes | RoutesBuilder | PathBuilder | typeof MakeRouters
+  ): void {
     if (routes instanceof RoutesBuilder || routes instanceof PathBuilder) {
       routes = routes.build();
+    } else if (typeof routes === 'function') {
+      const builder = new routes();
+      routes = builder.getRoutes();
     }
 
     this.routes.push(routes);
   }
 
-  addHandlers(handlers: Handlers | typeof HandlerBuilder): void {
-    if (typeof handlers === 'function') { 
+  addHandlers(handlers: Handlers | typeof MakeHandlers): void {
+    if (typeof handlers === 'function') {
       const builder = new handlers();
       handlers = builder.getHandlers();
     }
@@ -417,7 +423,14 @@ export {
   TableBuilder
 } from './resources/sequelize/builder';
 export { ColumnType } from './resources/sequelize';
-export { SequelizeModel as Model, Tags, log, HandlerMethods, HandlerMethodType, Handlers };
+export {
+  SequelizeModel as Model,
+  Tags,
+  log,
+  HandlerMethods,
+  HandlerMethodType,
+  Handlers
+};
 export { FastifyReply as Reply, FastifyRequest as Request };
 export { DataTypes } from 'sequelize';
 

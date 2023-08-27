@@ -9,10 +9,23 @@ import {
 } from '../src/index';
 import { Sequelize } from 'sequelize';
 import { ColumnType } from '../src/resources/sequelize';
-import { Create, HandlerBuilder } from '../src/routes/builders';
+import {
+  Create,
+  Get,
+  MakeHandlers,
+  MakeRouters,
+  Post
+} from '../src/routes/makes';
 
+const portsUsed: number[] = [];
 function getRandomPort() {
-  return Math.floor(Math.random() * 65535) + 1;
+  let port = 0;
+
+  do {
+    port = Math.floor(Math.random() * 65535) + 1;
+  } while (portsUsed.includes(port));
+
+  return port;
 }
 
 describe('FastAPI', () => {
@@ -470,7 +483,7 @@ describe('FastAPI', () => {
   });
 
   describe('Test Decorations', () => {
-    it('Test Routes', async () => {
+    it('Test Handlers', async () => {
       const fastAPI = new FastAPI({
         listen: {
           port: getRandomPort()
@@ -489,7 +502,7 @@ describe('FastAPI', () => {
       })
         .column({
           name: 'message',
-          type: ColumnType.STRING,
+          type: ColumnType.STRING
         })
         .build();
 
@@ -505,7 +518,7 @@ describe('FastAPI', () => {
         })
         .build();
 
-      class MyHandler extends HandlerBuilder {
+      class MyHandler extends MakeHandlers {
         @Create(messages)
         messagesCreate(_request: FastifyRequest, reply: FastifyReply) {
           reply.status(201).send({
@@ -559,53 +572,51 @@ describe('FastAPI', () => {
       });
     });
 
-    it('Test Handlers', async () => {
+    it('Test Routes', async () => {
       const fastAPI = new FastAPI({
         listen: {
           port: getRandomPort()
         }
       });
 
-      const schema = new SchemaBuilder({
-        auto: [AutoColumn.ID, AutoColumn.CREATED_AT, AutoColumn.UPDATED_AT]
-      });
+      interface PostRequestBody {
+        message: string;
+      }
 
-      const messages = new TableBuilder({
-        name: 'messages',
-        schema: schema,
-        auto: [AutoColumn.ID, AutoColumn.CREATED_AT, AutoColumn.UPDATED_AT],
-        group: 'msg'
-      })
-        .column({
-          name: 'message',
-          type: ColumnType.STRING
-        })
-        .build();
-
-      const chats = new TableBuilder({
-        name: 'chats',
-        schema: schema,
-        auto: [AutoColumn.ID, AutoColumn.CREATED_AT, AutoColumn.UPDATED_AT],
-        group: 'msg'
-      })
-        .column({
-          name: 'message',
-          type: ColumnType.STRING
-        })
-        .build();
-
-      class MyHandler extends HandlerBuilder {
-        @Create(messages)
-        messagesCreate(_request: FastifyRequest, reply: FastifyReply) {
-          reply.status(201).send({
-            message: 'Hello, Message!'
+      class MyRoutes extends MakeRouters {
+        @Get('/test')
+        test1(_request: FastifyRequest, reply: FastifyReply) {
+          reply.status(200).send({
+            message: 'Test get'
           });
         }
 
-        @Create(chats)
-        chatCreate(_request: FastifyRequest, reply: FastifyReply) {
+        @Post({
+          path: '/test',
+          responses: makeResponses('init', 201, {
+            message: {
+              type: ColumnType.STRING
+            }
+          }),
+          requestBody: {
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    message: {
+                      type: 'string'
+                    }
+                  }
+                }
+              }
+            }
+          }
+        })
+        test2(request: FastifyRequest, reply: FastifyReply) {
+          const { message } = request.body as PostRequestBody;
           reply.status(201).send({
-            message: 'Hello, Chat!'
+            message: `Test post ${message}`
           });
         }
       }
@@ -614,37 +625,38 @@ describe('FastAPI', () => {
         logging: false
       });
 
-      fastAPI.setSchema(schema.build());
       fastAPI.setDatabaseInstance(sequelize);
 
-      fastAPI.addHandlers(MyHandler);
+      fastAPI.addRoutes(MyRoutes);
 
-      fastAPI.loadAll();
+      fastAPI.loadRoutes();
 
       const data = await fastAPI.api.inject({
-        method: 'POST',
-        url: '/api/messages',
-        payload: {
-          messageId: 1,
-          protectedData: 'protected'
-        }
+        method: 'GET',
+        url: '/test'
       });
 
       expect(data.json()).toEqual({
-        message: 'Hello, Message!'
+        message: 'Test get'
       });
 
       const data2 = await fastAPI.api.inject({
         method: 'POST',
-        url: '/api/chats',
+        url: '/test'
+      });
+
+      expect(data2.statusCode).toBe(400);
+
+      const data3 = await fastAPI.api.inject({
+        method: 'POST',
+        url: '/test',
         payload: {
-          messageId: 1,
-          protectedData: 'protected'
+          message: 'Uhuu'
         }
       });
 
-      expect(data2.json()).toEqual({
-        message: 'Hello, Chat!'
+      expect(data3.json()).toEqual({
+        message: 'Test post Uhuu'
       });
     });
   });
