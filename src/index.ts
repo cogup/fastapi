@@ -113,7 +113,7 @@ export class FastAPI {
   forceCreateTables = false;
   api: FastifyInstance;
   private databaseLoaded = false;
-  private listen: (options: FastifyListenOptions) => Promise<void>;
+  private listenFn: (options: FastifyListenOptions) => Promise<void>;
   sequelize?: Sequelize;
   openapiSpec?: OpenAPI;
   private afterLoad: MakeHandlers | MakeRouters[] = [];
@@ -169,7 +169,7 @@ export class FastAPI {
     }
 
     this.api = api();
-    this.listen = promisify(this.api.listen.bind(this.api));
+    this.listenFn = promisify(this.api.listen.bind(this.api));
 
     return this;
   }
@@ -306,7 +306,7 @@ export class FastAPI {
     return this;
   }
 
-  async connect(): Promise<void> {
+  async dbConnect(): Promise<void> {
     await this.testDatabaseConnection();
     await this.createTables();
   }
@@ -337,11 +337,15 @@ export class FastAPI {
     }
   }
 
+  async listen() {
+    await this.listenFn(this.listenConfig);
+    this.afterLoadExecute();
+  }
+
   async start(): Promise<void> {
     this.loadAll();
-    await this.connect();
-    await this.listen(this.listenConfig);
-    this.afterLoadExecute();
+    await this.dbConnect();
+    await this.listen();
   }
 
   //Resources
