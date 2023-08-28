@@ -296,7 +296,7 @@ export class FastAPI {
     });
   }
 
-  loadAll() {
+  loadResources() {
     this.loadSchema();
     this.loadRoutes();
   }
@@ -343,7 +343,7 @@ export class FastAPI {
   }
 
   async start(): Promise<void> {
-    this.loadAll();
+    this.loadResources();
     await this.dbConnect();
     await this.listen();
   }
