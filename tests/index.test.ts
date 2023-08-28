@@ -568,6 +568,97 @@ describe('FastAPI', () => {
       });
     });
 
+    it('Test Handlers Instancied', async () => {
+      const fastAPI = new FastAPI({
+        listen: {
+          port: getRandomPort()
+        }
+      });
+
+      const schema = new SchemaBuilder({
+        auto: [AutoColumn.ID, AutoColumn.CREATED_AT, AutoColumn.UPDATED_AT]
+      });
+
+      const messages = new TableBuilder({
+        name: 'messages',
+        schema: schema,
+        auto: [AutoColumn.ID, AutoColumn.CREATED_AT, AutoColumn.UPDATED_AT],
+        group: 'msg'
+      })
+        .column({
+          name: 'message',
+          type: ColumnType.STRING
+        })
+        .build();
+
+      const chats = new TableBuilder({
+        name: 'chats',
+        schema: schema,
+        auto: [AutoColumn.ID, AutoColumn.CREATED_AT, AutoColumn.UPDATED_AT],
+        group: 'msg'
+      })
+        .column({
+          name: 'message',
+          type: ColumnType.STRING
+        })
+        .build();
+
+      const { Create } = Decorators;
+
+      class MyHandler extends Decorators.MakeHandlers {
+        @Create(messages)
+        messagesCreate(_request: FastifyRequest, reply: FastifyReply) {
+          reply.status(201).send({
+            message: 'Hello, Message!'
+          });
+        }
+
+        @Create(chats)
+        chatCreate(_request: FastifyRequest, reply: FastifyReply) {
+          reply.status(201).send({
+            message: 'Hello, Chat!'
+          });
+        }
+      }
+
+      const sequelize = new Sequelize('sqlite::memory:', {
+        logging: false
+      });
+
+      fastAPI.setSchema(schema.build());
+      fastAPI.setDatabaseInstance(sequelize);
+
+      fastAPI.addHandlers(new MyHandler());
+
+      fastAPI.loadResources();
+
+      const data = await fastAPI.api.inject({
+        method: 'POST',
+        url: '/api/messages',
+        payload: {
+          messageId: 1,
+          protectedData: 'protected'
+        }
+      });
+
+      expect(data.json()).toEqual({
+        message: 'Hello, Message!'
+      });
+
+      const data2 = await fastAPI.api.inject({
+        method: 'POST',
+        url: '/api/chats',
+        payload: {
+          messageId: 1,
+          protectedData: 'protected'
+        }
+      });
+
+      expect(data2.json()).toEqual({
+        message: 'Hello, Chat!'
+      });
+    });
+
     it('Test Routes', async () => {
       const fastAPI = new FastAPI({
         listen: {
@@ -632,6 +723,105 @@ describe('FastAPI', () => {
       fastAPI.setDatabaseInstance(sequelize);
 
       fastAPI.addRoutes(MyRoutes);
+
+      fastAPI.loadRoutes();
+
+      fastAPI.afterLoadExecute();
+
+      const data = await fastAPI.api.inject({
+        method: 'GET',
+        url: '/test'
+      });
+
+      expect(data.json()).toEqual({
+        message: `Test get in port ${fastAPI.listenConfig.port}`
+      });
+
+      const data2 = await fastAPI.api.inject({
+        method: 'POST',
+        url: '/test'
+      });
+
+      expect(data2.statusCode).toBe(400);
+
+      const data3 = await fastAPI.api.inject({
+        method: 'POST',
+        url: '/test',
+        payload: {
+          message: 'Uhuu'
+        }
+      });
+
+      expect(data3.json()).toEqual({
+        message: 'Test post Uhuu'
+      });
+    });
+
+    it('Test Routes Instancied', async () => {
+      const fastAPI = new FastAPI({
+        listen: {
+          port: getRandomPort()
+        }
+      });
+
+      interface PostRequestBody {
+        message: string;
+      }
+
+      const { Get, Post } = Decorators;
+
+      class MyRoutes extends Decorators.MakeRouters {
+        port: number = 0;
+
+        constructor(port: number) {
+          super();
+          this.port = port;
+        }
+
+        @Get('/test')
+        test1(_request: FastifyRequest, reply: FastifyReply) {
+          reply.status(200).send({
+            message: `Test get in port ${this.port}`
+          });
+        }
+
+        @Post({
+          path: '/test',
+          responses: makeResponses('init', 201, {
+            message: {
+              type: ColumnType.STRING
+            }
+          }),
+          requestBody: {
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    message: {
+                      type: 'string'
+                    }
+                  }
+                }
+              }
+            }
+          }
+        })
+        test2(request: FastifyRequest, reply: FastifyReply) {
+          const { message } = request.body as PostRequestBody;
+          reply.status(201).send({
+            message: `Test post ${message}`
+          });
+        }
+      }
+
+      const sequelize = new Sequelize('sqlite::memory:', {
+        logging: false
+      });
+
+      fastAPI.setDatabaseInstance(sequelize);
+
+      fastAPI.addRoutes(new MyRoutes(fastAPI.listenConfig.port as number));
 
       fastAPI.loadRoutes();
 

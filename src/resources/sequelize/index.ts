@@ -1,5 +1,4 @@
 import { DataTypes, Model, Sequelize } from 'sequelize';
-import * as fs from 'fs';
 import { convertToSingle } from '../openapi/utils';
 import { TableBuilder } from './builder';
 
