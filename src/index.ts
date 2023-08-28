@@ -75,6 +75,13 @@ export interface Models {
   [key: string]: typeof SequelizeModel;
 }
 
+interface LoadedResources {
+  schemas: boolean;
+  routes: boolean;
+  database: boolean;
+  api: boolean;
+}
+
 export class FastAPI {
   info: DocInfo = {
     title: 'FastAPI',
@@ -112,11 +119,11 @@ export class FastAPI {
   };
   forceCreateTables = false;
   api: FastifyInstance;
-  private databaseLoaded = false;
   private listenFn: (options: FastifyListenOptions) => Promise<void>;
   sequelize?: Sequelize;
   openapiSpec?: OpenAPI;
   private afterLoad: MakeHandlers | MakeRouters[] = [];
+  private loadedResources: LoadedResources;
 
   constructor(props?: FastAPIOptions) {
     if (props) {
@@ -171,11 +178,18 @@ export class FastAPI {
     this.api = api();
     this.listenFn = promisify(this.api.listen.bind(this.api));
 
+    this.loadedResources = {
+      schemas: false,
+      routes: false,
+      database: false,
+      api: false
+    };
+
     return this;
   }
 
   private loadDatabaseInstance() {
-    if (this.databaseLoaded) return;
+    if (this.loadedResources.database) return;
 
     const { uri, ...database } = this.database;
 
@@ -185,12 +199,12 @@ export class FastAPI {
       this.sequelize = new Sequelize(this.database);
     }
 
-    this.databaseLoaded = true;
+    this.loadedResources.database = true;
   }
 
   setDatabaseInstance(sequelize: Sequelize): void {
     this.sequelize = sequelize;
-    this.databaseLoaded = true;
+    this.loadedResources.database = true;
   }
 
   setSchema(schema: string | Schema): void {
@@ -198,6 +212,8 @@ export class FastAPI {
   }
 
   loadSchema(schema?: string | Schema): void {
+    if (this.loadedResources.schemas) return;
+
     this.loadDatabaseInstance();
 
     if (schema === undefined) {
@@ -225,6 +241,8 @@ export class FastAPI {
   }
 
   loadRoutes(): void {
+    if (this.loadedResources.routes) return;
+
     let shemasPaths: Paths = {};
 
     const resources = this.resources;
@@ -338,6 +356,8 @@ export class FastAPI {
   }
 
   async listen() {
+    if (this.loadedResources.api) return;
+
     await this.listenFn(this.listenConfig);
     this.afterLoadExecute();
   }
