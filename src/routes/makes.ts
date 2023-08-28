@@ -1,4 +1,4 @@
-import { Operation } from 'src/resources/openapi/openapiTypes';
+import { Operation } from '../resources/openapi/openapiTypes';
 import { generatePaths } from '../resources/openapi/index';
 import {
   HandlerMethodType,
@@ -8,7 +8,7 @@ import {
 } from '../resources/routes';
 import { TableBuilder } from '../resources/sequelize/builder';
 import 'reflect-metadata';
-import { FastAPI } from 'src';
+import { FastAPI } from '..';
 
 interface HandlerItem {
   resourceName: string;
