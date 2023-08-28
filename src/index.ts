@@ -95,11 +95,11 @@ export class FastAPI {
   };
   routes: Routes[] = [];
   tags: Tags = {
-    create: ['create'],
-    read: ['read'],
-    update: ['update'],
-    delete: ['delete'],
-    list: ['list']
+    create: ['Creates'],
+    read: ['Reads'],
+    update: ['Updates'],
+    delete: ['Deletes'],
+    list: ['Lists']
   };
   handlers: Handlers = {};
   private schema?: string | Schema;
