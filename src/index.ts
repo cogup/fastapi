@@ -438,6 +438,7 @@ export {
 } from './resources/sequelize/builder';
 export { ColumnType } from './resources/sequelize';
 export {
+  Sequelize,
   SequelizeModel as Model,
   Tags,
   log,
