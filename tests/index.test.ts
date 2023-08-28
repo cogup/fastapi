@@ -472,7 +472,7 @@ describe('FastAPI', () => {
 
       fastAPI.setDatabaseInstance(sequelize);
 
-      fastAPI.loadAll();
+      fastAPI.loadResources();
     });
   });
 
@@ -539,7 +539,7 @@ describe('FastAPI', () => {
 
       fastAPI.addHandlers(MyHandler);
 
-      fastAPI.loadAll();
+      fastAPI.loadResources();
 
       const data = await fastAPI.api.inject({
         method: 'POST',
