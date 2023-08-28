@@ -375,14 +375,23 @@ export class FastAPI {
 
   // Routes
   addRoutes(
-    routes: Routes | RoutesBuilder | PathBuilder | typeof MakeRouters
+    routes:
+      | Routes
+      | RoutesBuilder
+      | PathBuilder
+      | typeof MakeRouters
+      | MakeRouters
   ): void {
     if (routes instanceof RoutesBuilder || routes instanceof PathBuilder) {
       routes = routes.build();
     } else if (typeof routes === 'function') {
-      const builder = new routes();
-      routes = builder.getRoutes();
-      this.afterLoad?.push(builder);
+      if (routes instanceof MakeRouters) {
+        routes = routes.getRoutes();
+      } else {
+        const builder = new routes();
+        routes = builder.getRoutes();
+        this.afterLoad?.push(builder);
+      }
     }
 
     this.routes.push(routes);
