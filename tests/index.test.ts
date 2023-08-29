@@ -301,8 +301,50 @@ describe('FastAPI', () => {
             message: 'Hello, world!'
           }
         ],
-        meta: { page: 1, pageSize: 10, totalPages: 1, totalItems: 2 }
+        meta: { offset: 0, limit: 10, totalPages: 1, totalItems: 2 }
       });
+    });
+
+    it('should pagination', async () => {
+      const responsePost = await fastAPI.api.inject({
+        method: 'POST',
+        url: '/api/messages',
+        payload: {
+          message: 'Hello, world 3!',
+          protectedData: 'protected'
+        }
+      });
+
+      const responseGet = await fastAPI.api.inject({
+        method: 'GET',
+        url: '/api/messages?limit=2&offset=2'
+      });
+
+      expect(responseGet.statusCode).toBe(200);
+
+      const { data, meta } = responseGet.json();
+
+      const dataClean = data.map(
+        (
+          item: Record<string, string | number>
+        ): Record<string, string | number> => {
+          delete item.createdAt;
+          delete item.updatedAt;
+          return item;
+        }
+      );
+
+      expect({ data: dataClean, meta }).toEqual({
+        data: [
+          {
+            id: 1,
+            message: 'Hello, world!'
+          }
+        ],
+        meta: { offset: 2, limit: 2, totalPages: 2, totalItems: 3 }
+      });
+
+      expect(dataClean.length).toBe(1);
     });
 
     it('should get by id', async () => {

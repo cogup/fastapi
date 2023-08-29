@@ -198,8 +198,8 @@ export function generateOpenapiSchemas(
       meta: {
         type: 'object',
         properties: {
-          page: { type: 'integer' },
-          pageSize: { type: 'integer' },
+          offset: { type: 'integer' },
+          limit: { type: 'integer' },
           totalPages: { type: 'integer' },
           totalItems: { type: 'integer' }
         }
@@ -282,18 +282,18 @@ export function generateOpenapiSchemas(
           tags: resolveTags(groupName, tags.list),
           parameters: [
             {
-              name: 'page',
+              name: 'offset',
               in: 'query',
-              description: 'Page number',
+              description: 'Offset of items',
               schema: {
                 type: 'integer',
                 minimum: 1
               }
             },
             {
-              name: 'pageSize',
+              name: 'limit',
               in: 'query',
-              description: 'Number of items per page',
+              description: 'Max number of items per request',
               schema: {
                 type: 'integer',
                 minimum: 1,

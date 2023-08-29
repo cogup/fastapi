@@ -168,8 +168,8 @@ export interface AdminReference {
 }
 
 export interface AdminReferenceQuery {
-  pageSize?: string;
-  page?: string;
+  offset?: string;
+  limit?: string;
   order?: string;
   orderBy?: string;
   searchTerm: string;

@@ -8,12 +8,11 @@ export type RouteHandler = (request: any, reply: any) => Promise<void> | void;
 export function getAll(resource: Resource): RouteHandler {
   return async (request: any, reply: any) => {
     try {
-      const page = parseInt(request.query.page, 10) || 1;
-      const pageSize = parseInt(request.query.pageSize, 10) || 10;
+      const offset = parseInt(request.query.offset, 10) || 0;
+      const limit = parseInt(request.query.limit, 10) || 10;
       const searchTerm = request.query.search;
       const order = request.query.order || 'desc';
       const orderBy = request.query.orderBy || 'updatedAt';
-      const offset = (page - 1) * pageSize;
 
       const searchFilter =
         resource.search && searchTerm
@@ -23,18 +22,18 @@ export function getAll(resource: Resource): RouteHandler {
       const data = await resource.model.findAndCountAll({
         where: searchFilter,
         offset,
-        limit: pageSize,
+        limit,
         order: [[orderBy, order]],
         attributes: { exclude: resource.noPropagateColumns }
       });
 
-      const totalPages = Math.ceil(data.count / pageSize);
+      const totalPages = Math.ceil(data.count / limit);
 
       reply.send({
         data: data.rows,
         meta: {
-          page,
-          pageSize,
+          offset,
+          limit,
           totalPages,
           totalItems: data.count
         }
