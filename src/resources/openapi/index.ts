@@ -199,6 +199,7 @@ export function generateOpenapiSchemas(
         type: 'object',
         properties: {
           offset: { type: 'integer' },
+          page: { type: 'integer' },
           limit: { type: 'integer' },
           totalPages: { type: 'integer' },
           totalItems: { type: 'integer' }
@@ -287,6 +288,15 @@ export function generateOpenapiSchemas(
               description: 'Offset of items',
               schema: {
                 type: 'integer',
+                minimum: 0
+              }
+            },
+            {
+              name: 'page',
+              in: 'query',
+              description: 'Page number',
+              schema: {
+                type: 'integer',
                 minimum: 1
               }
             },
@@ -297,7 +307,7 @@ export function generateOpenapiSchemas(
               schema: {
                 type: 'integer',
                 minimum: 1,
-                maximum: 100
+                maximum: 1000
               }
             },
             {

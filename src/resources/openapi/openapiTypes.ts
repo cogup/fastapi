@@ -169,6 +169,7 @@ export interface AdminReference {
 
 export interface AdminReferenceQuery {
   offset?: string;
+  page?: string;
   limit?: string;
   order?: string;
   orderBy?: string;

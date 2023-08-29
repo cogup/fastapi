@@ -301,7 +301,7 @@ describe('FastAPI', () => {
             message: 'Hello, world!'
           }
         ],
-        meta: { offset: 0, limit: 10, totalPages: 1, totalItems: 2 }
+        meta: { offset: 0, limit: 10, totalPages: 1, totalItems: 2, page: 1 }
       });
     });
 
@@ -317,7 +317,7 @@ describe('FastAPI', () => {
 
       const responseGet = await fastAPI.api.inject({
         method: 'GET',
-        url: '/api/messages?limit=2&offset=2'
+        url: '/api/messages?limit=1&offset=2'
       });
 
       expect(responseGet.statusCode).toBe(200);
@@ -341,7 +341,7 @@ describe('FastAPI', () => {
             message: 'Hello, world!'
           }
         ],
-        meta: { offset: 2, limit: 2, totalPages: 2, totalItems: 3 }
+        meta: { offset: 2, limit: 1, totalPages: 3, totalItems: 3, page: 3 }
       });
 
       expect(dataClean.length).toBe(1);

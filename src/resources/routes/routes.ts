@@ -2,17 +2,20 @@ import { superFilter } from './superFilter';
 import { emit } from '../events';
 import { Resource } from '../sequelize';
 import log from '../log';
+import { parse } from 'path';
+import { off } from 'process';
 
 export type RouteHandler = (request: any, reply: any) => Promise<void> | void;
 
 export function getAll(resource: Resource): RouteHandler {
   return async (request: any, reply: any) => {
     try {
-      const offset = parseInt(request.query.offset, 10) || 0;
       const limit = parseInt(request.query.limit, 10) || 10;
       const searchTerm = request.query.search;
       const order = request.query.order || 'desc';
       const orderBy = request.query.orderBy || 'updatedAt';
+      const page = parseInt(request.query.page, 10) || 1;
+      const offset = request.query.offset || (page - 1) * limit;
 
       const searchFilter =
         resource.search && searchTerm
@@ -29,10 +32,13 @@ export function getAll(resource: Resource): RouteHandler {
 
       const totalPages = Math.ceil(data.count / limit);
 
+      const currentPage = Math.ceil(offset / limit) + 1;
+
       reply.send({
         data: data.rows,
         meta: {
           offset,
+          page: currentPage,
           limit,
           totalPages,
           totalItems: data.count
