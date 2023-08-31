@@ -3,7 +3,7 @@ import { Column, ColumnType, Schema } from './index';
 export interface TableBuilderProps {
   name: string;
   schema: SchemaBuilder;
-  auto: AutoColumn[];
+  auto?: AutoColumn[];
   group?: string;
 }
 
@@ -13,7 +13,7 @@ export class TableBuilder {
   search: string[] = [];
   schema: SchemaBuilder;
   private builded: boolean = false;
-  auto: AutoColumn[] = [];
+  auto?: AutoColumn[] = [];
   group?: string;
 
   constructor(props: TableBuilderProps) {
@@ -43,6 +43,10 @@ export class TableBuilder {
   }
 
   private createdUpdated(): void {
+    if (this.auto === undefined) {
+      return;
+    }
+
     if (
       this.auto.includes(AutoColumn.CREATED_AT) &&
       !this.columnExists('createdAt')
@@ -110,7 +114,7 @@ export class SchemaBuilder {
   constructor(props: SchemaBuilderProps = {}) {
     this.auto = props.auto || [];
   }
-  
+
   table(table: string): TableBuilder {
     return new TableBuilder({
       name: table,
