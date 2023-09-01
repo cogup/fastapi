@@ -43,12 +43,14 @@ export class TableBuilder {
   }
 
   private createdUpdated(): void {
-    if (this.auto === undefined) {
+    const auto = this.auto || this.schema.auto;
+
+    if (auto === undefined) {
       return;
     }
 
     if (
-      this.auto.includes(AutoColumn.CREATED_AT) &&
+      auto.includes(AutoColumn.CREATED_AT) &&
       !this.columnExists('createdAt')
     ) {
       this.column({
@@ -59,7 +61,7 @@ export class TableBuilder {
     }
 
     if (
-      this.auto.includes(AutoColumn.UPDATED_AT) &&
+      auto.includes(AutoColumn.UPDATED_AT) &&
       !this.columnExists('updatedAt')
     ) {
       this.column({
@@ -68,7 +70,7 @@ export class TableBuilder {
       });
     }
 
-    if (this.auto.includes(AutoColumn.ID) && !this.columnExists('id')) {
+    if (auto.includes(AutoColumn.ID) && !this.columnExists('id')) {
       this.column({
         name: 'id',
         type: ColumnType.INT,

@@ -179,7 +179,6 @@ describe('FastAPI', () => {
       const messageTable = new TableBuilder({
         name: 'messages',
         schema: schema,
-        auto: [AutoColumn.ID, AutoColumn.CREATED_AT, AutoColumn.UPDATED_AT]
       })
         .column({
           name: 'message',
@@ -202,7 +201,6 @@ describe('FastAPI', () => {
       new TableBuilder({
         name: 'chats',
         schema: schema,
-        auto: [AutoColumn.ID, AutoColumn.CREATED_AT, AutoColumn.UPDATED_AT]
       })
         .column({
           name: 'messageId',
@@ -471,7 +469,6 @@ describe('FastAPI', () => {
       const messageTable = new TableBuilder({
         name: 'messages',
         schema: schema,
-        auto: [AutoColumn.ID, AutoColumn.CREATED_AT, AutoColumn.UPDATED_AT],
         group: 'msg'
       })
         .column({
@@ -484,7 +481,6 @@ describe('FastAPI', () => {
       new TableBuilder({
         name: 'chats',
         schema: schema,
-        auto: [AutoColumn.ID, AutoColumn.CREATED_AT, AutoColumn.UPDATED_AT],
         group: 'msg'
       })
         .column({
@@ -498,7 +494,6 @@ describe('FastAPI', () => {
       new TableBuilder({
         name: 'settings',
         schema: schema,
-        auto: [AutoColumn.ID, AutoColumn.CREATED_AT, AutoColumn.UPDATED_AT]
       })
         .column({
           name: 'name',
