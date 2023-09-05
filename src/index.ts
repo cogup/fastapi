@@ -233,7 +233,8 @@ export class FastAPI {
 
       for (const key in this.resources) {
         const resource = this.resources[key];
-        this.models[modelName(resource.name)] = resource.model;
+        const modelName = resource.model.name.charAt(0).toUpperCase() + resource.model.name.slice(1);
+        this.models[modelName] = resource.model;
       }
     } else {
       throw new Error('Schema not found');
@@ -482,14 +483,3 @@ export {
 export { FastifyReply as Reply, FastifyRequest as Request };
 export { DataTypes } from 'sequelize';
 export * as Decorators from './routes/makes';
-
-export function modelName(text: string): string {
-  const name = text.charAt(0).toUpperCase();
-
-  // se terminar com s, remove a ultima letra
-  if (text[text.length - 1] === 's') {
-    return name + text.slice(1, -1);
-  }
-
-  return name + text.slice(1);
-}
