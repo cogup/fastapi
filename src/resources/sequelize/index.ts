@@ -33,12 +33,12 @@ export enum ColumnType {
   INT = 'int',
   SERIAL = 'int',
   FLOAT = 'float',
-  CODE = 'code'
+  CODE = 'code',
+  NUMERIC = 'numeric'
 }
 
-export interface Column {
-  name: string;
-  type: ColumnType;
+export interface ResourceData {
+  type?: ColumnType;
   autoIncrement?: boolean;
   values?: string[];
   min?: number;
@@ -61,6 +61,10 @@ export interface Column {
   description?: string;
 }
 
+export interface Column extends ResourceData {
+  name: string;
+}
+
 export interface Relationship {
   model: typeof SequelizeModel;
   as: string;
@@ -73,7 +77,6 @@ export interface Resource {
   name: string;
   primaryKey: string | null;
   columns: Record<string, Column>;
-  relationships?: Relationship[];
   search?: string[];
   protectedColumns: string[];
   privateColumns: string[];
@@ -85,12 +88,92 @@ export interface Resources {
   [resurceName: string]: Resource;
 }
 
+export interface SequelizeResources {
+  model: typeof SequelizeModel;
+  resources?: Record<string, ResourceData>;
+}
+
+export function generateResourcesFromSequelizeModels(
+  sequelizeResources: SequelizeResources[]
+) {
+  const resources: Resources = {};
+
+  for (const sequelizeResource of sequelizeResources) {
+    const model = sequelizeResource.model;
+
+    const resource: Resource = {
+      model,
+      name: model.name,
+      primaryKey: null,
+      columns: {},
+      protectedColumns: [],
+      privateColumns: [],
+      noPropagateColumns: []
+    };
+
+    const attributes = model.getAttributes();
+
+    for (const column of Object.keys(attributes)) {
+      const columnType = dataTypesResultToColumnType(attributes[column].type);
+      const primaryKey = attributes[column].primaryKey ?? false;
+      const allowNull = attributes[column].allowNull ?? false;
+      const defaultValue = attributes[column].defaultValue;
+      const unique = isUnique(attributes[column].unique);
+      const columnResource =
+        sequelizeResource.resources !== undefined
+          ? column in sequelizeResource.resources
+            ? sequelizeResource.resources[column]
+            : {}
+          : {};
+
+      resource.columns[column] = {
+        type: columnType,
+        primaryKey,
+        allowNull,
+        defaultValue,
+        unique,
+        ...columnResource,
+        name: column,
+      };
+
+      if (primaryKey) {
+        resource.primaryKey = column;
+      }
+    }
+
+    resources[model.name] = resource;
+  }
+
+  return resources;
+}
+
 export function getReference(reference: string | TableBuilder): string {
   if (typeof reference === 'string') {
     return reference;
   }
 
   return reference.name;
+}
+
+function isUnique(
+  data:
+    | string
+    | boolean
+    | {
+        name: string;
+        msg: string;
+      }
+    | undefined
+): boolean {
+  if (typeof data === 'boolean' && data === true) {
+    return data;
+  }
+
+  if (typeof data === 'object') {
+    return true;
+  }
+
+  return false;
 }
 
 export function generateResourcesFromJSON(
@@ -178,20 +261,6 @@ export function generateResourcesFromJSON(
 
       model.belongsTo(referencedModel, { foreignKey: column.name });
       referencedModel.hasMany(model, { foreignKey: column.name });
-
-      if (resources[resurceName].relationships === undefined) {
-        resources[resurceName].relationships = [
-          {
-            model: referencedModel,
-            as: column.name
-          }
-        ];
-      } else {
-        resources[resurceName].relationships?.push({
-          model: referencedModel,
-          as: column.name
-        });
-      }
     }
   }
 
@@ -242,10 +311,40 @@ function getNumberProps(attributes: Record<string, any>): Record<string, any> {
   return params;
 }
 
+function dataTypesResultToColumnType(data: DataTypesResult): ColumnType {
+  if (data instanceof DataTypes.STRING) {
+    return ColumnType.STRING;
+  } else if (data instanceof DataTypes.CHAR) {
+    return ColumnType.CHAR;
+  } else if (data instanceof DataTypes.TEXT) {
+    return ColumnType.TEXT;
+  } else if (data instanceof DataTypes.DATE) {
+    return ColumnType.DATE;
+  } else if (data instanceof DataTypes.TIME) {
+    return ColumnType.TIME;
+  } else if (data instanceof DataTypes.BOOLEAN) {
+    return ColumnType.BOOLEAN;
+  } else if (data instanceof DataTypes.UUID) {
+    return ColumnType.UUID;
+  } else if (data instanceof DataTypes.ENUM) {
+    return ColumnType.ENUM;
+  } else if (data instanceof DataTypes.JSON) {
+    return ColumnType.JSON;
+  } else if (data instanceof DataTypes.INTEGER) {
+    return ColumnType.INTEGER;
+  } else if (data instanceof DataTypes.FLOAT) {
+    return ColumnType.FLOAT;
+  } else if (data instanceof DataTypes.NUMBER) {
+    return ColumnType.NUMERIC;
+  }
+
+  throw new Error(`Unknown column type: ${data}`);
+}
+
 function getSequelizeDataType(column: Column): DataTypesResult {
   const { type, ...attributes } = column;
 
-  const columnType = type.toUpperCase();
+  const columnType = type?.toUpperCase() as string;
 
   if (
     (columnType.includes('TEXT') || columnType.includes('VARCHAR')) &&

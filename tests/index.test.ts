@@ -10,6 +10,7 @@ import {
 import { Sequelize } from 'sequelize';
 import { ColumnType } from '../src/resources/sequelize';
 import { Decorators } from '../src';
+import { Model, DataTypes } from 'sequelize';
 
 const portsUsed: number[] = [];
 function getRandomPort() {
@@ -895,16 +896,125 @@ describe('FastAPI', () => {
   });
 
   it('Test sequelize Model', async () => {
-    const fastAPI = new FastAPI({
-      listen: {
-        port: getRandomPort()
-      }
-    });
-
     const sequelize = new Sequelize('sqlite::memory:', {
       logging: false
     });
 
+    class User extends Model {
+      public id!: number;
+      public name!: string;
+      public email!: string;
+
+      // Timestamps
+      public readonly createdAt!: Date;
+      public readonly updatedAt!: Date;
+    }
+
+    User.init(
+      {
+        id: {
+          type: DataTypes.INTEGER,
+          autoIncrement: true,
+          primaryKey: true
+        },
+        name: {
+          type: DataTypes.STRING
+        },
+        email: {
+          type: DataTypes.STRING
+        }
+      },
+      {
+        sequelize,
+        modelName: 'User'
+      }
+    );
+
+    class Post extends Model {
+      public id!: number;
+      public title!: string;
+      public content!: string;
+
+      // Timestamps
+      public readonly createdAt!: Date;
+      public readonly updatedAt!: Date;
+    }
+
+    Post.init(
+      {
+        id: {
+          type: DataTypes.INTEGER,
+          autoIncrement: true,
+          primaryKey: true
+        },
+        title: {
+          type: DataTypes.STRING,
+          allowNull: false
+        },
+        content: {
+          type: DataTypes.TEXT,
+          allowNull: false
+        }
+      },
+      {
+        sequelize,
+        modelName: 'Post'
+      }
+    );
+
+    const fastAPI = new FastAPI({
+      listen: {
+        port: getRandomPort()
+      },
+      schema: [
+        {
+          model: User
+        },
+        {
+          model: Post,
+          resources: {
+            content: {
+              type: ColumnType.CODE
+            }
+          }
+        }
+      ]
+    });
+
     fastAPI.setDatabaseInstance(sequelize);
+
+    fastAPI.loadResources();
+
+    fastAPI.afterLoadExecute();
+
+    const data = await fastAPI.api.inject({
+      method: 'POST',
+      url: '/api/users',
+      payload: {
+        name: 'User 1',
+        email: 'example@mail.com'
+      }
+    });
+
+    expect(data.json()).toEqual({
+      id: 1,
+      name: 'User 1',
+      email: 'example@mail.com'
+    });
+
+    const data2 = await fastAPI.api.inject({
+      method: 'POST',
+      url: '/api/posts',
+      payload: {
+        title: 'Post 1',
+        content: 'Content 1'
+      }
+    });
+
+    expect(data2.json()).toEqual({
+      id: 1,
+      title: 'Post 1',
+      content: 'Content 1'
+    });
   });
 });

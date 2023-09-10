@@ -10,10 +10,6 @@
   "author": "Philippe Assis <philippe.assis@cogup.com>",
   "license": "MIT",
   "dependencies": {
-    "@fastify/cors": "^8.2.1",
-    "@types/json-schema": "^7.0.12",
-    "@types/node": "^20.2.5",
-    "@types/pino": "^7.0.5",
     "fastify": "4.17.0",
     "json-schema": "^0.4.0",
     "pino": "^8.14.1",
@@ -21,7 +17,11 @@
     "sequelize": "^6.31.1"
   },
   "devDependencies": {
-    "@types/jest": "^29.5.2",
+    "@fastify/cors": "^8.2.1",
+    "@types/jest": "^29.5.4",
+    "@types/json-schema": "^7.0.12",
+    "@types/node": "^20.2.5",
+    "@types/pino": "^7.0.5",
     "eslint": "^8.40.0",
     "eslint-config-prettier": "^8.8.0",
     "eslint-config-standard": "^17.0.0",
@@ -33,7 +33,7 @@
     "jest-mock": "^29.5.0",
     "prettier": "^2.8.8",
     "sqlite3": "^5.1.6",
-    "ts-jest": "^29.1.0",
+    "ts-jest": "^29.1.1",
     "typescript": "^5.1.6"
   },
   "jest": {
