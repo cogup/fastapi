@@ -178,7 +178,7 @@ describe('FastAPI', () => {
 
       const messageTable = new TableBuilder({
         name: 'messages',
-        schema: schema,
+        schema: schema
       })
         .column({
           name: 'message',
@@ -200,7 +200,7 @@ describe('FastAPI', () => {
 
       new TableBuilder({
         name: 'chats',
-        schema: schema,
+        schema: schema
       })
         .column({
           name: 'messageId',
@@ -493,7 +493,7 @@ describe('FastAPI', () => {
 
       new TableBuilder({
         name: 'settings',
-        schema: schema,
+        schema: schema
       })
         .column({
           name: 'name',
@@ -892,5 +892,19 @@ describe('FastAPI', () => {
         message: 'Test post Uhuu'
       });
     });
+  });
+
+  it('Test sequelize Model', async () => {
+    const fastAPI = new FastAPI({
+      listen: {
+        port: getRandomPort()
+      }
+    });
+
+    const sequelize = new Sequelize('sqlite::memory:', {
+      logging: false
+    });
+
+    fastAPI.setDatabaseInstance(sequelize);
   });
 });
