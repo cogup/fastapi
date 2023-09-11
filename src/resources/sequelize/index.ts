@@ -1,6 +1,6 @@
 import { DataTypes, Model, Sequelize } from 'sequelize';
 import { convertToSingle } from '../openapi/utils';
-import { TableBuilder } from './builder';
+import { SchemaModelsBuilder, TableBuilder } from './builder';
 
 export type DataTypesResult =
   | DataTypes.StringDataType
@@ -94,8 +94,12 @@ export interface SequelizeResources {
 }
 
 export function generateResourcesFromSequelizeModels(
-  sequelizeResources: SequelizeResources[]
+  sequelizeResources: SequelizeResources[] | SchemaModelsBuilder
 ) {
+  if (sequelizeResources instanceof SchemaModelsBuilder) { 
+    sequelizeResources = sequelizeResources.schema;
+  }
+
   const resources: Resources = {};
 
   for (const sequelizeResource of sequelizeResources) {
@@ -133,7 +137,7 @@ export function generateResourcesFromSequelizeModels(
         defaultValue,
         unique,
         ...columnResource,
-        name: column,
+        name: column
       };
 
       if (primaryKey) {

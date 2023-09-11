@@ -30,13 +30,12 @@ import {
 import healthRoute from './routes/health';
 import { on, emit, remove, EventCallback } from './resources/events';
 import { AdminData, OpenAPI, Paths } from './resources/openapi/openapiTypes';
-import { Options, Sequelize, SyncOptions } from 'sequelize';
+import { Options, Sequelize } from 'sequelize';
 import { promisify } from 'util';
 import log from './resources/log';
-import * as fs from 'fs';
 import { DocInfo, ServerObject } from './resources/openapi/doc';
 import builderOpenapi from './routes/openapi';
-import { TableBuilder } from './resources/sequelize/builder';
+import { SchemaModelsBuilder, TableBuilder } from './resources/sequelize/builder';
 import { MakeHandlers, MakeRouters, getResourceName } from './routes/makes';
 
 // get package.json version
@@ -59,7 +58,7 @@ export interface FastAPIOptions {
   routes?: Routes[];
   tags?: Tags;
   handlers?: Handlers;
-  schema?: Schema | SequelizeResources[];
+  schema?: Schema | SequelizeResources[] | SchemaModelsBuilder;
   resources?: Resources;
   database?: DatabaseOptions;
   cors?: Cors;
@@ -104,7 +103,7 @@ export class FastAPI {
     list: ['Lists']
   };
   handlers: Handlers = {};
-  private schema?: Schema | SequelizeResources[];
+  private schema?: Schema | SequelizeResources[] | SchemaModelsBuilder;
   resources: Resources = {};
   models: Models = {};
   database: DatabaseOptions = {
@@ -209,11 +208,13 @@ export class FastAPI {
     this.loadedResources.database = true;
   }
 
-  setSchema(schema: Schema | SequelizeResources[]): void {
+  setSchema(schema: Schema | SequelizeResources[] | SchemaModelsBuilder): void {
     this.schema = schema;
   }
 
-  loadSchema(schema?: Schema | SequelizeResources[]): void {
+  loadSchema(
+    schema?: Schema | SequelizeResources[] | SchemaModelsBuilder
+  ): void {
     if (this.loadedResources.schemas) return;
 
     this.loadDatabaseInstance();
@@ -224,8 +225,10 @@ export class FastAPI {
       this.schema = schema;
     }
 
+    // schame is SchemaModelsBuilder
+
     // schema is Schema interface
-    if (schema instanceof Array) {
+    if (schema instanceof Array || schema instanceof SchemaModelsBuilder) {
       const resources = generateResourcesFromSequelizeModels(schema);
 
       this.resources = resources;
@@ -484,7 +487,8 @@ export { makeResponses } from './resources/openapi/responses';
 export {
   SchemaBuilder,
   AutoColumn,
-  TableBuilder
+  TableBuilder,
+  SchemaModelsBuilder
 } from './resources/sequelize/builder';
 export { ColumnType } from './resources/sequelize';
 export {

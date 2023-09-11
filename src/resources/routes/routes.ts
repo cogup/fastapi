@@ -2,8 +2,6 @@ import { superFilter } from './superFilter';
 import { emit } from '../events';
 import { Resource } from '../sequelize';
 import log from '../log';
-import { parse } from 'path';
-import { off } from 'process';
 
 export type RouteHandler = (request: any, reply: any) => Promise<void> | void;
 

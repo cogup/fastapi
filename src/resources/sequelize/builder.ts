@@ -1,4 +1,5 @@
-import { Column, ColumnType, Schema } from './index';
+import { Model } from 'sequelize';
+import { Column, ColumnType, ResourceData, Schema, SequelizeModel, SequelizeResources } from './index';
 
 export interface TableBuilderProps {
   name: string;
@@ -127,5 +128,23 @@ export class SchemaBuilder {
 
   build(): Schema {
     return this.schema;
+  }
+}
+
+export class SchemaModelsBuilder {
+  schema: SequelizeResources[];
+
+  constructor() {
+    this.schema = [];
+  }
+
+  addResource(
+    model: typeof SequelizeModel,
+    resources?: Record<string, ResourceData>
+  ) {
+    this.schema.push({
+      model,
+      resources
+    });
   }
 }

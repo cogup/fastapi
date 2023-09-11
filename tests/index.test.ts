@@ -5,6 +5,7 @@ import {
   makeResponses,
   RoutesBuilder,
   SchemaBuilder,
+  SchemaModelsBuilder,
   TableBuilder
 } from '../src/index';
 import { Sequelize } from 'sequelize';
@@ -904,10 +905,6 @@ describe('FastAPI', () => {
       public id!: number;
       public name!: string;
       public email!: string;
-
-      // Timestamps
-      public readonly createdAt!: Date;
-      public readonly updatedAt!: Date;
     }
 
     User.init(
@@ -926,7 +923,9 @@ describe('FastAPI', () => {
       },
       {
         sequelize,
-        modelName: 'User'
+        modelName: 'User',
+        createdAt: false,
+        updatedAt: false
       }
     );
 
@@ -934,10 +933,6 @@ describe('FastAPI', () => {
       public id!: number;
       public title!: string;
       public content!: string;
-
-      // Timestamps
-      public readonly createdAt!: Date;
-      public readonly updatedAt!: Date;
     }
 
     Post.init(
@@ -958,27 +953,26 @@ describe('FastAPI', () => {
       },
       {
         sequelize,
-        modelName: 'Post'
+        modelName: 'Post',
+        createdAt: false,
+        updatedAt: false
       }
     );
+
+    const schema = new SchemaModelsBuilder();
+
+    schema.addResource(User);
+    schema.addResource(Post, {
+      content: {
+        type: ColumnType.CODE
+      }
+    });
 
     const fastAPI = new FastAPI({
       listen: {
         port: getRandomPort()
       },
-      schema: [
-        {
-          model: User
-        },
-        {
-          model: Post,
-          resources: {
-            content: {
-              type: ColumnType.CODE
-            }
-          }
-        }
-      ]
+      schema
     });
 
     fastAPI.setDatabaseInstance(sequelize);
@@ -986,6 +980,8 @@ describe('FastAPI', () => {
     fastAPI.loadResources();
 
     fastAPI.afterLoadExecute();
+
+    await fastAPI.dbConnect();
 
     const data = await fastAPI.api.inject({
       method: 'POST',
@@ -997,7 +993,7 @@ describe('FastAPI', () => {
     });
 
     expect(data.json()).toEqual({
-      id: 1,
+      id: 0,
       name: 'User 1',
       email: 'example@mail.com'
     });
@@ -1012,7 +1008,7 @@ describe('FastAPI', () => {
     });
 
     expect(data2.json()).toEqual({
-      id: 1,
+      id: 0,
       title: 'Post 1',
       content: 'Content 1'
     });
