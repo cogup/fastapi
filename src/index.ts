@@ -35,7 +35,10 @@ import { promisify } from 'util';
 import log from './resources/log';
 import { DocInfo, ServerObject } from './resources/openapi/doc';
 import builderOpenapi from './routes/openapi';
-import { SchemaModelsBuilder, TableBuilder } from './resources/sequelize/builder';
+import {
+  SchemaModelsBuilder,
+  TableBuilder
+} from './resources/sequelize/builder';
 import { MakeHandlers, MakeRouters, getResourceName } from './routes/makes';
 
 // get package.json version
@@ -61,6 +64,7 @@ export interface FastAPIOptions {
   schema?: Schema | SequelizeResources[] | SchemaModelsBuilder;
   resources?: Resources;
   database?: DatabaseOptions;
+  sequelize?: Sequelize;
   cors?: Cors;
   forceCreateTables?: boolean;
   listen?: FastifyListenOptions;
@@ -174,6 +178,10 @@ export class FastAPI {
           }
         ];
       }
+
+      if (props.sequelize !== undefined) {
+        this.sequelize = props.sequelize;
+      }
     }
 
     this.api = api();
@@ -182,7 +190,7 @@ export class FastAPI {
     this.loadedResources = {
       schemas: false,
       routes: false,
-      database: false,
+      database: this.sequelize !== undefined,
       api: false
     };
 
