@@ -23,18 +23,19 @@ import {
   Resources,
   Schema,
   SequelizeModel,
-  generateResourcesFromJSON
+  SequelizeResources,
+  generateResourcesFromJSON,
+  generateResourcesFromSequelizeModels
 } from './resources/sequelize';
 import healthRoute from './routes/health';
 import { on, emit, remove, EventCallback } from './resources/events';
 import { AdminData, OpenAPI, Paths } from './resources/openapi/openapiTypes';
-import { Options, Sequelize, SyncOptions } from 'sequelize';
+import { Options, Sequelize } from 'sequelize';
 import { promisify } from 'util';
 import log from './resources/log';
-import * as fs from 'fs';
 import { DocInfo, ServerObject } from './resources/openapi/doc';
 import builderOpenapi from './routes/openapi';
-import { TableBuilder } from './resources/sequelize/builder';
+import { SchemaModelsBuilder, TableBuilder } from './resources/sequelize/builder';
 import { MakeHandlers, MakeRouters, getResourceName } from './routes/makes';
 
 // get package.json version
@@ -57,7 +58,7 @@ export interface FastAPIOptions {
   routes?: Routes[];
   tags?: Tags;
   handlers?: Handlers;
-  schema?: string | Schema;
+  schema?: Schema | SequelizeResources[] | SchemaModelsBuilder;
   resources?: Resources;
   database?: DatabaseOptions;
   cors?: Cors;
@@ -102,7 +103,7 @@ export class FastAPI {
     list: ['Lists']
   };
   handlers: Handlers = {};
-  private schema?: string | Schema;
+  private schema?: Schema | SequelizeResources[] | SchemaModelsBuilder;
   resources: Resources = {};
   models: Models = {};
   database: DatabaseOptions = {
@@ -207,24 +208,40 @@ export class FastAPI {
     this.loadedResources.database = true;
   }
 
-  setSchema(schema: string | Schema): void {
+  setSchema(schema: Schema | SequelizeResources[] | SchemaModelsBuilder): void {
     this.schema = schema;
   }
 
-  loadSchema(schema?: string | Schema): void {
+  loadSchema(
+    schema?: Schema | SequelizeResources[] | SchemaModelsBuilder
+  ): void {
     if (this.loadedResources.schemas) return;
 
     this.loadDatabaseInstance();
 
     if (schema === undefined) {
       schema = this.schema;
+    } else {
+      this.schema = schema;
     }
 
-    if (schema) {
-      const schemaJson =
-        typeof schema === 'string'
-          ? JSON.parse(fs.readFileSync(schema, 'utf8'))
-          : schema;
+    // schame is SchemaModelsBuilder
+
+    // schema is Schema interface
+    if (schema instanceof Array || schema instanceof SchemaModelsBuilder) {
+      const resources = generateResourcesFromSequelizeModels(schema);
+
+      this.resources = resources;
+
+      for (const key in resources) {
+        const resource = resources[key];
+        const modelName =
+          resource.model.name.charAt(0).toUpperCase() +
+          resource.model.name.slice(1);
+        this.models[modelName] = resource.model;
+      }
+    } else if (schema instanceof Object) {
+      const schemaJson = schema;
 
       this.resources = generateResourcesFromJSON(
         schemaJson,
@@ -233,7 +250,9 @@ export class FastAPI {
 
       for (const key in this.resources) {
         const resource = this.resources[key];
-        const modelName = resource.model.name.charAt(0).toUpperCase() + resource.model.name.slice(1);
+        const modelName =
+          resource.model.name.charAt(0).toUpperCase() +
+          resource.model.name.slice(1);
         this.models[modelName] = resource.model;
       }
     } else {
@@ -468,7 +487,8 @@ export { makeResponses } from './resources/openapi/responses';
 export {
   SchemaBuilder,
   AutoColumn,
-  TableBuilder
+  TableBuilder,
+  SchemaModelsBuilder
 } from './resources/sequelize/builder';
 export { ColumnType } from './resources/sequelize';
 export {

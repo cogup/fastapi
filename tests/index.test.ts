@@ -5,11 +5,13 @@ import {
   makeResponses,
   RoutesBuilder,
   SchemaBuilder,
+  SchemaModelsBuilder,
   TableBuilder
 } from '../src/index';
 import { Sequelize } from 'sequelize';
 import { ColumnType } from '../src/resources/sequelize';
 import { Decorators } from '../src';
+import { Model, DataTypes } from 'sequelize';
 
 const portsUsed: number[] = [];
 function getRandomPort() {
@@ -178,7 +180,7 @@ describe('FastAPI', () => {
 
       const messageTable = new TableBuilder({
         name: 'messages',
-        schema: schema,
+        schema: schema
       })
         .column({
           name: 'message',
@@ -200,7 +202,7 @@ describe('FastAPI', () => {
 
       new TableBuilder({
         name: 'chats',
-        schema: schema,
+        schema: schema
       })
         .column({
           name: 'messageId',
@@ -493,7 +495,7 @@ describe('FastAPI', () => {
 
       new TableBuilder({
         name: 'settings',
-        schema: schema,
+        schema: schema
       })
         .column({
           name: 'name',
@@ -891,6 +893,124 @@ describe('FastAPI', () => {
       expect(data3.json()).toEqual({
         message: 'Test post Uhuu'
       });
+    });
+  });
+
+  it('Test sequelize Model', async () => {
+    const sequelize = new Sequelize('sqlite::memory:', {
+      logging: false
+    });
+
+    class User extends Model {
+      public id!: number;
+      public name!: string;
+      public email!: string;
+    }
+
+    User.init(
+      {
+        id: {
+          type: DataTypes.INTEGER,
+          autoIncrement: true,
+          primaryKey: true
+        },
+        name: {
+          type: DataTypes.STRING
+        },
+        email: {
+          type: DataTypes.STRING
+        }
+      },
+      {
+        sequelize,
+        modelName: 'User',
+        createdAt: false,
+        updatedAt: false
+      }
+    );
+
+    class Post extends Model {
+      public id!: number;
+      public title!: string;
+      public content!: string;
+    }
+
+    Post.init(
+      {
+        id: {
+          type: DataTypes.INTEGER,
+          autoIncrement: true,
+          primaryKey: true
+        },
+        title: {
+          type: DataTypes.STRING,
+          allowNull: false
+        },
+        content: {
+          type: DataTypes.TEXT,
+          allowNull: false
+        }
+      },
+      {
+        sequelize,
+        modelName: 'Post',
+        createdAt: false,
+        updatedAt: false
+      }
+    );
+
+    const schema = new SchemaModelsBuilder();
+
+    schema.addResource(User);
+    schema.addResource(Post, {
+      content: {
+        type: ColumnType.CODE
+      }
+    });
+
+    const fastAPI = new FastAPI({
+      listen: {
+        port: getRandomPort()
+      },
+      schema
+    });
+
+    fastAPI.setDatabaseInstance(sequelize);
+
+    fastAPI.loadResources();
+
+    fastAPI.afterLoadExecute();
+
+    await fastAPI.dbConnect();
+
+    const data = await fastAPI.api.inject({
+      method: 'POST',
+      url: '/api/users',
+      payload: {
+        name: 'User 1',
+        email: 'example@mail.com'
+      }
+    });
+
+    expect(data.json()).toEqual({
+      id: 0,
+      name: 'User 1',
+      email: 'example@mail.com'
+    });
+
+    const data2 = await fastAPI.api.inject({
+      method: 'POST',
+      url: '/api/posts',
+      payload: {
+        title: 'Post 1',
+        content: 'Content 1'
+      }
+    });
+
+    expect(data2.json()).toEqual({
+      id: 0,
+      title: 'Post 1',
+      content: 'Content 1'
     });
   });
 });
