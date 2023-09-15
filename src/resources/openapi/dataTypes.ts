@@ -76,6 +76,9 @@ export const dataTypes: DataTypes = {
   JSONB: {
     type: 'object'
   },
+  JSONTYPE: {
+    type: 'object'
+  },
   VARCHAR: {
     type: 'string'
   },
