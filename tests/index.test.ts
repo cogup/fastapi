@@ -9,7 +9,7 @@ import {
   TableBuilder
 } from '../src/index';
 import { Sequelize } from 'sequelize';
-import { ColumnType } from '../src/resources/sequelize';
+import { ResourceType } from '../src/resources/sequelize';
 import { Decorators } from '../src';
 import { Model, DataTypes } from 'sequelize';
 
@@ -56,22 +56,22 @@ describe('FastAPI', () => {
         .table('hello')
         .column({
           name: 'id',
-          type: ColumnType.INT,
+          type: ResourceType.INT,
           primaryKey: true,
           autoIncrement: true
         })
         .column({
           name: 'message',
-          type: ColumnType.STRING,
+          type: ResourceType.STRING,
           allowNull: false
         })
         .column({
           name: 'createdAt',
-          type: ColumnType.DATE
+          type: ResourceType.DATE
         })
         .column({
           name: 'updatedAt',
-          type: ColumnType.DATE
+          type: ResourceType.DATE
         })
         .build()
         .schema.build();
@@ -109,7 +109,7 @@ describe('FastAPI', () => {
       fastAPI.get('/', {
         responses: makeResponses('init', 222, {
           message: {
-            type: ColumnType.STRING
+            type: ResourceType.STRING
           }
         }),
         handler: (_request: FastifyRequest, reply: FastifyReply) => {
@@ -139,7 +139,7 @@ describe('FastAPI', () => {
         .get({
           responses: makeResponses('init', 222, {
             message: {
-              type: ColumnType.STRING
+              type: ResourceType.STRING
             }
           }),
           handler: (_request: FastifyRequest, reply: FastifyReply) => {
@@ -184,18 +184,18 @@ describe('FastAPI', () => {
       })
         .column({
           name: 'message',
-          type: ColumnType.CODE,
+          type: ResourceType.CODE,
           allowNull: false
         })
         .column({
           name: 'privateData',
-          type: ColumnType.STRING,
+          type: ResourceType.STRING,
           defaultValue: 'privateDefault',
           private: true
         })
         .column({
           name: 'protectedData',
-          type: ColumnType.STRING,
+          type: ResourceType.STRING,
           protected: true
         })
         .build();
@@ -206,7 +206,7 @@ describe('FastAPI', () => {
       })
         .column({
           name: 'messageId',
-          type: ColumnType.INT,
+          type: ResourceType.INT,
           allowNull: false,
           reference: messageTable
         })
@@ -475,7 +475,7 @@ describe('FastAPI', () => {
       })
         .column({
           name: 'name',
-          type: ColumnType.STRING,
+          type: ResourceType.STRING,
           allowNull: false
         })
         .build();
@@ -487,7 +487,7 @@ describe('FastAPI', () => {
       })
         .column({
           name: 'messageId',
-          type: ColumnType.INT,
+          type: ResourceType.INT,
           allowNull: false,
           reference: messageTable
         })
@@ -499,7 +499,7 @@ describe('FastAPI', () => {
       })
         .column({
           name: 'name',
-          type: ColumnType.STRING
+          type: ResourceType.STRING
         })
         .build();
 
@@ -535,7 +535,7 @@ describe('FastAPI', () => {
       })
         .column({
           name: 'message',
-          type: ColumnType.STRING
+          type: ResourceType.STRING
         })
         .build();
 
@@ -547,7 +547,7 @@ describe('FastAPI', () => {
       })
         .column({
           name: 'message',
-          type: ColumnType.STRING
+          type: ResourceType.STRING
         })
         .build();
 
@@ -626,7 +626,7 @@ describe('FastAPI', () => {
       })
         .column({
           name: 'message',
-          type: ColumnType.STRING
+          type: ResourceType.STRING
         })
         .build();
 
@@ -638,7 +638,7 @@ describe('FastAPI', () => {
       })
         .column({
           name: 'message',
-          type: ColumnType.STRING
+          type: ResourceType.STRING
         })
         .build();
 
@@ -729,7 +729,7 @@ describe('FastAPI', () => {
           path: '/test',
           responses: makeResponses('init', 201, {
             message: {
-              type: ColumnType.STRING
+              type: ResourceType.STRING
             }
           }),
           requestBody: {
@@ -828,7 +828,7 @@ describe('FastAPI', () => {
           path: '/test',
           responses: makeResponses('init', 201, {
             message: {
-              type: ColumnType.STRING
+              type: ResourceType.STRING
             }
           }),
           requestBody: {
@@ -964,7 +964,7 @@ describe('FastAPI', () => {
     schema.addResource(User);
     schema.addResource(Post, {
       content: {
-        type: ColumnType.CODE
+        type: ResourceType.CODE
       }
     });
 

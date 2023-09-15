@@ -19,7 +19,7 @@ export interface Table {
   group?: string;
 }
 
-export enum ColumnType {
+export enum ResourceType {
   STRING = 'string',
   CHAR = 'char',
   TEXT = 'text',
@@ -38,7 +38,7 @@ export enum ColumnType {
 }
 
 export interface ResourceData {
-  type?: ColumnType;
+  type?: ResourceType;
   autoIncrement?: boolean;
   values?: string[];
   min?: number;
@@ -118,7 +118,7 @@ export function generateResourcesFromSequelizeModels(
     const attributes = model.getAttributes();
 
     for (const column of Object.keys(attributes)) {
-      const columnType = dataTypesResultToColumnType(attributes[column].type);
+      const ResourceType = dataTypesResultToResourceType(attributes[column].type);
       const primaryKey = attributes[column].primaryKey ?? false;
       const allowNull = attributes[column].allowNull ?? false;
       const defaultValue = attributes[column].defaultValue;
@@ -131,7 +131,7 @@ export function generateResourcesFromSequelizeModels(
           : {};
 
       resource.columns[column] = {
-        type: columnType,
+        type: ResourceType,
         primaryKey,
         allowNull,
         defaultValue,
@@ -210,7 +210,7 @@ export function generateResourcesFromJSON(
 
     for (const column of table.columns) {
       const columnName = column.name;
-      const columnType = getSequelizeDataType(column);
+      const ResourceType = getSequelizeDataType(column);
 
       const primaryKey = column.primaryKey ?? false;
       const allowNull = column.allowNull ?? false;
@@ -220,7 +220,7 @@ export function generateResourcesFromJSON(
       column.required = !allowNull || column.required;
 
       tableColumns[columnName] = {
-        type: columnType,
+        type: ResourceType,
         allowNull,
         primaryKey,
         references: null,
@@ -315,31 +315,31 @@ function getNumberProps(attributes: Record<string, any>): Record<string, any> {
   return params;
 }
 
-function dataTypesResultToColumnType(data: DataTypesResult): ColumnType {
+function dataTypesResultToResourceType(data: DataTypesResult): ResourceType {
   if (data instanceof DataTypes.STRING) {
-    return ColumnType.STRING;
+    return ResourceType.STRING;
   } else if (data instanceof DataTypes.CHAR) {
-    return ColumnType.CHAR;
+    return ResourceType.CHAR;
   } else if (data instanceof DataTypes.TEXT) {
-    return ColumnType.TEXT;
+    return ResourceType.TEXT;
   } else if (data instanceof DataTypes.DATE) {
-    return ColumnType.DATE;
+    return ResourceType.DATE;
   } else if (data instanceof DataTypes.TIME) {
-    return ColumnType.TIME;
+    return ResourceType.TIME;
   } else if (data instanceof DataTypes.BOOLEAN) {
-    return ColumnType.BOOLEAN;
+    return ResourceType.BOOLEAN;
   } else if (data instanceof DataTypes.UUID) {
-    return ColumnType.UUID;
+    return ResourceType.UUID;
   } else if (data instanceof DataTypes.ENUM) {
-    return ColumnType.ENUM;
+    return ResourceType.ENUM;
   } else if (data instanceof DataTypes.JSON) {
-    return ColumnType.JSON;
+    return ResourceType.JSON;
   } else if (data instanceof DataTypes.INTEGER) {
-    return ColumnType.INTEGER;
+    return ResourceType.INTEGER;
   } else if (data instanceof DataTypes.FLOAT) {
-    return ColumnType.FLOAT;
+    return ResourceType.FLOAT;
   } else if (data instanceof DataTypes.NUMBER) {
-    return ColumnType.NUMERIC;
+    return ResourceType.NUMERIC;
   }
 
   throw new Error(`Unknown column type: ${data}`);
@@ -348,54 +348,54 @@ function dataTypesResultToColumnType(data: DataTypesResult): ColumnType {
 function getSequelizeDataType(column: Column): DataTypesResult {
   const { type, ...attributes } = column;
 
-  const columnType = type?.toUpperCase() as string;
+  const ResourceType = type?.toUpperCase() as string;
 
   if (
-    (columnType.includes('TEXT') || columnType.includes('VARCHAR')) &&
+    (ResourceType.includes('TEXT') || ResourceType.includes('VARCHAR')) &&
     attributes.maxLength
   ) {
     return DataTypes.STRING(attributes.maxLength, attributes.binary);
-  } else if (columnType === 'STRING') {
+  } else if (ResourceType === 'STRING') {
     return DataTypes.STRING(attributes.maxLength, attributes.binary);
-  } else if (columnType === 'CHAR') {
+  } else if (ResourceType === 'CHAR') {
     return DataTypes.CHAR(attributes.maxLength, attributes.binary);
-  } else if (columnType === 'TEXT') {
+  } else if (ResourceType === 'TEXT') {
     return DataTypes.TEXT;
-  } else if (columnType === 'DATE') {
+  } else if (ResourceType === 'DATE') {
     return DataTypes.DATE(attributes.maxLength);
-  } else if (columnType === 'TIME') {
+  } else if (ResourceType === 'TIME') {
     return DataTypes.TIME;
-  } else if (columnType === 'BOOLEAN') {
+  } else if (ResourceType === 'BOOLEAN') {
     return DataTypes.BOOLEAN;
-  } else if (columnType === 'UUID') {
+  } else if (ResourceType === 'UUID') {
     return DataTypes.UUID;
-  } else if (columnType === 'ENUM') {
+  } else if (ResourceType === 'ENUM') {
     const values = attributes.values as [];
     return DataTypes.ENUM.apply(null, values);
-  } else if (columnType === 'JSON' || columnType === 'JSONTYPE') {
+  } else if (ResourceType === 'JSON' || ResourceType === 'JSONTYPE') {
     return DataTypes.JSON;
   } else if (
-    columnType === 'INT' ||
-    columnType === 'INTEGER' ||
-    columnType === 'SERIAL'
+    ResourceType === 'INT' ||
+    ResourceType === 'INTEGER' ||
+    ResourceType === 'SERIAL'
   ) {
     return DataTypes.INTEGER;
-  } else if (columnType === 'FLOAT') {
+  } else if (ResourceType === 'FLOAT') {
     return DataTypes.FLOAT(attributes.length, attributes.decimals);
   } else if (
-    columnType === 'BIGINT' ||
-    columnType === 'SMALLINT' ||
-    columnType === 'TINYINT' ||
-    columnType === 'MEDIUMINT' ||
-    columnType === 'DOUBLE' ||
-    columnType === 'DECIMAL' ||
-    columnType === 'REAL' ||
-    columnType === 'NUMERIC'
+    ResourceType === 'BIGINT' ||
+    ResourceType === 'SMALLINT' ||
+    ResourceType === 'TINYINT' ||
+    ResourceType === 'MEDIUMINT' ||
+    ResourceType === 'DOUBLE' ||
+    ResourceType === 'DECIMAL' ||
+    ResourceType === 'REAL' ||
+    ResourceType === 'NUMERIC'
   ) {
     return DataTypes.NUMBER(getNumberProps(attributes));
-  } else if (columnType === 'CODE') {
+  } else if (ResourceType === 'CODE') {
     return DataTypes.STRING(attributes.maxLength, attributes.binary);
   }
 
-  throw new Error(`Unknown column type: ${columnType}`);
+  throw new Error(`Unknown column type: ${ResourceType}`);
 }

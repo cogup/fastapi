@@ -498,7 +498,7 @@ export {
   TableBuilder,
   SchemaModelsBuilder
 } from './resources/sequelize/builder';
-export { ColumnType } from './resources/sequelize';
+export { ResourceType } from './resources/sequelize';
 export {
   Sequelize,
   SequelizeModel as Model,

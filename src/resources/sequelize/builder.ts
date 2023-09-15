@@ -1,5 +1,5 @@
 import { Model } from 'sequelize';
-import { Column, ColumnType, ResourceData, Schema, SequelizeModel, SequelizeResources } from './index';
+import { Column, ResourceType, ResourceData, Schema, SequelizeModel, SequelizeResources } from './index';
 
 export interface TableBuilderProps {
   name: string;
@@ -56,7 +56,7 @@ export class TableBuilder {
     ) {
       this.column({
         name: 'createdAt',
-        type: ColumnType.DATE,
+        type: ResourceType.DATE,
         imutable: true
       });
     }
@@ -67,14 +67,14 @@ export class TableBuilder {
     ) {
       this.column({
         name: 'updatedAt',
-        type: ColumnType.DATE
+        type: ResourceType.DATE
       });
     }
 
     if (auto.includes(AutoColumn.ID) && !this.columnExists('id')) {
       this.column({
         name: 'id',
-        type: ColumnType.INT,
+        type: ResourceType.INT,
         autoIncrement: true,
         primaryKey: true
       });
