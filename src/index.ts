@@ -69,7 +69,7 @@ export interface FastAPIOptions {
   forceCreateTables?: boolean;
   listen?: FastifyListenOptions;
   info?: DocInfo;
-  server?: ServerObject[];
+  servers?: ServerObject[];
 }
 
 export interface Cors {
@@ -168,8 +168,8 @@ export class FastAPI {
         this.info = props.info;
       }
 
-      if (props.server !== undefined) {
-        this.servers = props.server;
+      if (props.servers !== undefined) {
+        this.servers = props.servers;
       } else {
         this.servers = [
           {
