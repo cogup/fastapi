@@ -12,6 +12,7 @@ interface PathItemObject {
 export interface ServerObject {
   url: string;
   description?: string;
+  'x-title'?: string;
 }
 
 export interface DocInfo {
