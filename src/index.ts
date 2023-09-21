@@ -196,9 +196,6 @@ export class FastAPI {
       this.schema = schema;
     }
 
-    // schame is SchemaModelsBuilder
-
-    // schema is Schema interface
     if (schema instanceof Array || schema instanceof SchemaModelsBuilder) {
       const resources = generateResourcesFromSequelizeModels(schema);
 

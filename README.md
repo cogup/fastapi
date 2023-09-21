@@ -34,13 +34,6 @@ const { FastAPI } = require('fastapi');
 
 const fastapi = new FastAPI();
 
-fastapi
-  .setDataBase({
-    database: process.env.DB_NAME,
-    username: process.env.DB_USER,
-    password: process.env.DB_PASSWORD
-  })
-
 fastapi.get(
   '/hello',
   {

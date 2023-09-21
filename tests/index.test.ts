@@ -32,7 +32,7 @@ describe('FastAPI', () => {
 
       expect(fastAPI).toBeInstanceOf(FastAPI);
     });
-    
+
     it('should add a schema for hello', async () => {
       const sequelize = new Sequelize('sqlite::memory:', {
         logging: false
@@ -89,6 +89,9 @@ describe('FastAPI', () => {
 
       expect(result).toBeTruthy();
       expect(result?.dataValues.message).toBe(mockHello.message);
+
+      await sequelize.close();
+      await fastAPI.api.close();
     });
 
     it('should add a route for /hello', async () => {
@@ -213,6 +216,8 @@ describe('FastAPI', () => {
         logging: false
       });
 
+      await sequelize.sync({ force: true });
+
       fastAPI.setSchema(schema.build());
       fastAPI.setSequelize(sequelize);
 
@@ -245,6 +250,9 @@ describe('FastAPI', () => {
       expect(data2.json()).toEqual({
         message: 'Hello, Chat!'
       });
+
+      await sequelize.close();
+      await fastAPI.api.close();
     });
 
     it('Test Handlers Instancied', async () => {
@@ -304,6 +312,7 @@ describe('FastAPI', () => {
         logging: false
       });
 
+      await sequelize.sync({ force: true });
       fastAPI.setSchema(schema.build());
       fastAPI.setSequelize(sequelize);
 
@@ -336,6 +345,9 @@ describe('FastAPI', () => {
       expect(data2.json()).toEqual({
         message: 'Hello, Chat!'
       });
+
+      await sequelize.close();
+      await fastAPI.api.close();
     });
 
     it('Test Routes', async () => {
@@ -399,6 +411,8 @@ describe('FastAPI', () => {
         logging: false
       });
 
+      await sequelize.sync({ force: true });
+
       fastAPI.setSequelize(sequelize);
 
       fastAPI.addRoutes(MyRoutes);
@@ -434,6 +448,9 @@ describe('FastAPI', () => {
       expect(data3.json()).toEqual({
         message: 'Test post Uhuu'
       });
+
+      await sequelize.close();
+      await fastAPI.api.close();
     });
 
     it('Test Routes Instancied', async () => {
@@ -498,6 +515,8 @@ describe('FastAPI', () => {
         logging: false
       });
 
+      await sequelize.sync({ force: true });
+
       fastAPI.setSequelize(sequelize);
 
       fastAPI.addRoutes(new MyRoutes(fastAPI.listenConfig.port as number));
@@ -533,6 +552,9 @@ describe('FastAPI', () => {
       expect(data3.json()).toEqual({
         message: 'Test post Uhuu'
       });
+
+      await sequelize.close();
+      await fastAPI.api.close();
     });
   });
 
@@ -542,9 +564,9 @@ describe('FastAPI', () => {
     });
 
     class User extends Model {
-      public id!: number;
-      public name!: string;
-      public email!: string;
+      id!: number;
+      name!: string;
+      email!: string;
     }
 
     User.init(
@@ -570,9 +592,9 @@ describe('FastAPI', () => {
     );
 
     class Post extends Model {
-      public id!: number;
-      public title!: string;
-      public content!: string;
+      id!: number;
+      title!: string;
+      content!: string;
     }
 
     Post.init(
@@ -649,5 +671,8 @@ describe('FastAPI', () => {
       title: 'Post 1',
       content: 'Content 1'
     });
+
+    await sequelize.close();
+    await fastAPI.api.close();
   });
 });
