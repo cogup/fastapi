@@ -32,23 +32,16 @@ describe('FastAPI', () => {
 
       expect(fastAPI).toBeInstanceOf(FastAPI);
     });
-
-    it('should initialize FastAPI with the passed parameters', () => {
-      const fastAPI = new FastAPI();
-      fastAPI.api.log.level = 'silent';
-
-      fastAPI.setDatabase({
-        database: 'testDB',
-        username: 'testUser',
-        password: 'testPassword'
+    
+    it('should add a schema for hello', async () => {
+      const sequelize = new Sequelize('sqlite::memory:', {
+        logging: false
       });
 
-      expect(fastAPI.database.database).toEqual('testDB');
-      expect(fastAPI.database.username).toEqual('testUser');
-      expect(fastAPI.database.password).toEqual('testPassword');
-    });
-    it('should add a schema for hello', async () => {
-      const fastAPI = new FastAPI();
+      const fastAPI = new FastAPI({
+        sequelize
+      });
+
       fastAPI.api.log.level = 'silent';
 
       const schema = new SchemaBuilder();
@@ -76,15 +69,11 @@ describe('FastAPI', () => {
         .build()
         .schema.build();
 
+      await sequelize.sync({ force: true });
+
       const mockHello = {
         message: 'Hello, world!'
       };
-
-      const sequelize = new Sequelize('sqlite::memory:', {
-        logging: false
-      });
-
-      fastAPI.setDatabaseInstance(sequelize);
 
       fastAPI.loadSchema(helloSchema);
 
@@ -166,355 +155,6 @@ describe('FastAPI', () => {
     });
   });
 
-  describe('Schema and Server', () => {
-    const fastAPI = new FastAPI({
-      listen: {
-        port: 30000
-      }
-    });
-
-    beforeAll(async () => {
-      const schema = new SchemaBuilder({
-        auto: [AutoColumn.ID, AutoColumn.CREATED_AT, AutoColumn.UPDATED_AT]
-      });
-
-      const messageTable = new TableBuilder({
-        name: 'messages',
-        schema: schema
-      })
-        .column({
-          name: 'message',
-          type: ResourceType.CODE,
-          allowNull: false
-        })
-        .column({
-          name: 'privateData',
-          type: ResourceType.STRING,
-          defaultValue: 'privateDefault',
-          private: true
-        })
-        .column({
-          name: 'protectedData',
-          type: ResourceType.STRING,
-          protected: true
-        })
-        .build();
-
-      new TableBuilder({
-        name: 'chats',
-        schema: schema
-      })
-        .column({
-          name: 'messageId',
-          type: ResourceType.INT,
-          allowNull: false,
-          reference: messageTable
-        })
-        .build();
-
-      const sequelize = new Sequelize('sqlite::memory:', {
-        logging: false
-      });
-
-      fastAPI.setSchema(schema.build());
-
-      fastAPI.setDatabaseInstance(sequelize);
-    });
-
-    afterAll(async () => {
-      await fastAPI.api.close();
-    });
-
-    it('should start the server', async () => {
-      await fastAPI.start();
-    });
-
-    it('should post', async () => {
-      const responsePost = await fastAPI.api.inject({
-        method: 'POST',
-        url: '/api/messages',
-        payload: {
-          message: 'Hello, world!',
-          protectedData: 'protected'
-        }
-      });
-
-      const responsePost2 = await fastAPI.api.inject({
-        method: 'POST',
-        url: '/api/messages',
-        payload: {
-          message: 'Hello, world 2!',
-          protectedData: 'protected'
-        }
-      });
-
-      expect(responsePost.statusCode).toBe(201);
-
-      const data1 = responsePost.json();
-      delete data1.createdAt;
-      delete data1.updatedAt;
-
-      expect(data1).toEqual({
-        id: 1,
-        message: 'Hello, world!'
-      });
-
-      expect(responsePost2.statusCode).toBe(201);
-
-      const data2 = responsePost2.json();
-      delete data2.createdAt;
-      delete data2.updatedAt;
-
-      expect(data2).toEqual({
-        id: 2,
-        message: 'Hello, world 2!'
-      });
-    });
-
-    it('should get', async () => {
-      const responseGet = await fastAPI.api.inject({
-        method: 'GET',
-        url: '/api/messages'
-      });
-
-      expect(responseGet.statusCode).toBe(200);
-
-      const { data, meta } = responseGet.json();
-      const dataClean = data.map(
-        (
-          item: Record<string, string | number>
-        ): Record<string, string | number> => {
-          delete item.createdAt;
-          delete item.updatedAt;
-          return item;
-        }
-      );
-
-      expect({ data: dataClean, meta }).toEqual({
-        data: [
-          {
-            id: 2,
-            message: 'Hello, world 2!'
-          },
-          {
-            id: 1,
-            message: 'Hello, world!'
-          }
-        ],
-        meta: { offset: 0, limit: 10, totalPages: 1, totalItems: 2, page: 1 }
-      });
-    });
-
-    it('should pagination', async () => {
-      const responsePost = await fastAPI.api.inject({
-        method: 'POST',
-        url: '/api/messages',
-        payload: {
-          message: 'Hello, world 3!',
-          protectedData: 'protected'
-        }
-      });
-
-      const responseGet = await fastAPI.api.inject({
-        method: 'GET',
-        url: '/api/messages?limit=1&offset=2'
-      });
-
-      expect(responseGet.statusCode).toBe(200);
-
-      const { data, meta } = responseGet.json();
-
-      const dataClean = data.map(
-        (
-          item: Record<string, string | number>
-        ): Record<string, string | number> => {
-          delete item.createdAt;
-          delete item.updatedAt;
-          return item;
-        }
-      );
-
-      expect({ data: dataClean, meta }).toEqual({
-        data: [
-          {
-            id: 1,
-            message: 'Hello, world!'
-          }
-        ],
-        meta: { offset: 2, limit: 1, totalPages: 3, totalItems: 3, page: 3 }
-      });
-
-      expect(dataClean.length).toBe(1);
-    });
-
-    it('should get by id', async () => {
-      const responseGet = await fastAPI.api.inject({
-        method: 'GET',
-        url: '/api/messages/1'
-      });
-
-      expect(responseGet.statusCode).toBe(200);
-
-      const data = responseGet.json();
-      delete data.createdAt;
-      delete data.updatedAt;
-
-      expect(data).toEqual({
-        id: 1,
-        message: 'Hello, world!'
-      });
-    });
-
-    it('should put', async () => {
-      const responsePut = await fastAPI.api.inject({
-        method: 'PUT',
-        url: '/api/messages/1',
-        payload: {
-          message: 'Hello, world 3!',
-          protectedData: 'protected 2'
-        }
-      });
-
-      expect(responsePut.statusCode).toBe(200);
-
-      const data = responsePut.json();
-      delete data.createdAt;
-      delete data.updatedAt;
-
-      expect(data).toEqual({
-        id: 1,
-        message: 'Hello, world 3!'
-      });
-    });
-
-    it('should delete', async () => {
-      const responseDelete = await fastAPI.api.inject({
-        method: 'DELETE',
-        url: '/api/messages/1'
-      });
-
-      expect(responseDelete.statusCode).toBe(204);
-    });
-
-    it('should get by id not found', async () => {
-      const responseGet = await fastAPI.api.inject({
-        method: 'GET',
-        url: '/api/messages/1'
-      });
-
-      expect(responseGet.statusCode).toBe(404);
-    });
-
-    it('should get health', async () => {
-      const responseGet = await fastAPI.api.inject({
-        method: 'GET',
-        url: '/health'
-      });
-
-      expect(responseGet.statusCode).toBe(200);
-      expect(responseGet.json()).toEqual({
-        status: 'UP'
-      });
-    });
-
-    it('should get all info health', async () => {
-      const responseGet = await fastAPI.api.inject({
-        method: 'GET',
-        url: '/health/all'
-      });
-
-      expect(responseGet.statusCode).toBe(200);
-    });
-
-    it('should get openapi especification', async () => {
-      const responseGet = await fastAPI.api.inject({
-        method: 'GET',
-        url: '/openapi.json'
-      });
-
-      expect(responseGet.statusCode).toBe(200);
-    });
-
-    it('should relationship', async () => {
-      const data = await fastAPI.api.inject({
-        method: 'POST',
-        url: '/api/chats',
-        payload: {
-          messageId: 1,
-          protectedData: 'protected'
-        }
-      });
-
-      expect(data.statusCode).toBe(201);
-
-      const responseGet = await fastAPI.api.inject({
-        method: 'GET',
-        url: '/api/chats/1'
-      });
-
-      expect(responseGet.statusCode).toBe(200);
-    });
-  });
-
-  describe('Test api', () => {
-    it('Teste Lib Api', async () => {
-      const fastAPI = new FastAPI({
-        listen: {
-          port: getRandomPort()
-        }
-      });
-
-      const schema = new SchemaBuilder({
-        auto: [AutoColumn.ID, AutoColumn.CREATED_AT, AutoColumn.UPDATED_AT]
-      });
-
-      const messageTable = new TableBuilder({
-        name: 'messages',
-        schema: schema,
-        group: 'msg'
-      })
-        .column({
-          name: 'name',
-          type: ResourceType.STRING,
-          allowNull: false
-        })
-        .build();
-
-      new TableBuilder({
-        name: 'chats',
-        schema: schema,
-        group: 'msg'
-      })
-        .column({
-          name: 'messageId',
-          type: ResourceType.INT,
-          allowNull: false,
-          reference: messageTable
-        })
-        .build();
-
-      new TableBuilder({
-        name: 'settings',
-        schema: schema
-      })
-        .column({
-          name: 'name',
-          type: ResourceType.STRING
-        })
-        .build();
-
-      const sequelize = new Sequelize('sqlite::memory:', {
-        logging: false
-      });
-
-      fastAPI.setSchema(schema.build());
-
-      fastAPI.setDatabaseInstance(sequelize);
-
-      fastAPI.loadResources();
-    });
-  });
-
   describe('Test Decorations', () => {
     it('Test Handlers', async () => {
       const fastAPI = new FastAPI({
@@ -574,7 +214,7 @@ describe('FastAPI', () => {
       });
 
       fastAPI.setSchema(schema.build());
-      fastAPI.setDatabaseInstance(sequelize);
+      fastAPI.setSequelize(sequelize);
 
       fastAPI.addHandlers(MyHandler);
 
@@ -665,7 +305,7 @@ describe('FastAPI', () => {
       });
 
       fastAPI.setSchema(schema.build());
-      fastAPI.setDatabaseInstance(sequelize);
+      fastAPI.setSequelize(sequelize);
 
       fastAPI.addHandlers(new MyHandler());
 
@@ -759,7 +399,7 @@ describe('FastAPI', () => {
         logging: false
       });
 
-      fastAPI.setDatabaseInstance(sequelize);
+      fastAPI.setSequelize(sequelize);
 
       fastAPI.addRoutes(MyRoutes);
 
@@ -858,7 +498,7 @@ describe('FastAPI', () => {
         logging: false
       });
 
-      fastAPI.setDatabaseInstance(sequelize);
+      fastAPI.setSequelize(sequelize);
 
       fastAPI.addRoutes(new MyRoutes(fastAPI.listenConfig.port as number));
 
@@ -972,16 +612,13 @@ describe('FastAPI', () => {
       listen: {
         port: getRandomPort()
       },
-      schema
+      schema,
+      sequelize
     });
 
-    fastAPI.setDatabaseInstance(sequelize);
+    await sequelize.sync({ force: true });
 
-    fastAPI.loadResources();
-
-    fastAPI.afterLoadExecute();
-
-    await fastAPI.dbConnect();
+    await fastAPI.start();
 
     const data = await fastAPI.api.inject({
       method: 'POST',

@@ -53,17 +53,12 @@ export interface LoadSpecOptions {
   handlers?: HandlerMethods;
 }
 
-export interface DatabaseOptions extends Options {
-  uri?: string;
-}
-
 export interface FastAPIOptions {
   routes?: Routes[];
   tags?: Tags;
   handlers?: Handlers;
   schema?: Schema | SequelizeResources[] | SchemaModelsBuilder;
   resources?: Resources;
-  database?: DatabaseOptions;
   sequelize?: Sequelize;
   cors?: Cors;
   forceCreateTables?: boolean;
@@ -83,7 +78,6 @@ export interface Models {
 interface LoadedResources {
   schemas: boolean;
   routes: boolean;
-  database: boolean;
   api: boolean;
 }
 
@@ -110,15 +104,6 @@ export class FastAPI {
   private schema?: Schema | SequelizeResources[] | SchemaModelsBuilder;
   resources: Resources = {};
   models: Models = {};
-  database: DatabaseOptions = {
-    host: 'localhost',
-    port: 5432,
-    dialect: 'postgres',
-    logging: undefined,
-    sync: {
-      force: false
-    }
-  };
   cors: Cors = {
     origin: '*'
   };
@@ -146,10 +131,6 @@ export class FastAPI {
 
       if (props.tags !== undefined) {
         this.tags = props.tags;
-      }
-
-      if (props.database !== undefined) {
-        this.database = { ...this.database, ...props.database };
       }
 
       if (props.cors !== undefined) {
@@ -190,30 +171,14 @@ export class FastAPI {
     this.loadedResources = {
       schemas: false,
       routes: false,
-      database: this.sequelize !== undefined,
       api: false
     };
 
     return this;
   }
 
-  private loadDatabaseInstance() {
-    if (this.loadedResources.database) return;
-
-    const { uri, ...database } = this.database;
-
-    if (uri) {
-      this.sequelize = new Sequelize(uri, database);
-    } else {
-      this.sequelize = new Sequelize(this.database);
-    }
-
-    this.loadedResources.database = true;
-  }
-
-  setDatabaseInstance(sequelize: Sequelize): void {
+  setSequelize(sequelize: Sequelize): void {
     this.sequelize = sequelize;
-    this.loadedResources.database = true;
   }
 
   setSchema(schema: Schema | SequelizeResources[] | SchemaModelsBuilder): void {
@@ -224,8 +189,6 @@ export class FastAPI {
     schema?: Schema | SequelizeResources[] | SchemaModelsBuilder
   ): void {
     if (this.loadedResources.schemas) return;
-
-    this.loadDatabaseInstance();
 
     if (schema === undefined) {
       schema = this.schema;
@@ -347,34 +310,6 @@ export class FastAPI {
     this.loadRoutes();
   }
 
-  setDatabase(database: Options): FastAPI {
-    this.database = { ...this.database, ...database };
-    return this;
-  }
-
-  async dbConnect(): Promise<void> {
-    await this.testDatabaseConnection();
-    await this.createTables();
-  }
-
-  private async createTables(): Promise<void> {
-    try {
-      await this.sequelize?.sync(this.database.sync);
-      log.info('All tables created.');
-    } catch (error) {
-      log.error('Error creating tables:', error);
-      await this.sequelize?.close();
-    }
-  }
-
-  async testDatabaseConnection(): Promise<void> {
-    if (this.sequelize) {
-      await this.sequelize.authenticate();
-    } else {
-      throw new Error('Database connection not established');
-    }
-  }
-
   afterLoadExecute() {
     if (this.afterLoad) {
       this.afterLoad.forEach((builder: MakeHandlers | MakeRouters) => {
@@ -392,7 +327,6 @@ export class FastAPI {
 
   async start(): Promise<void> {
     this.loadResources();
-    await this.dbConnect();
     await this.listen();
   }
 
