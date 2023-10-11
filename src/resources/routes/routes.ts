@@ -3,6 +3,8 @@ import { emit } from '../events';
 import { Resource } from '../sequelize';
 import log from '../log';
 import { Reply, Request } from 'src';
+import { Op } from 'sequelize';
+const { like, iLike } = Op;
 
 interface GetAllQuery {
   limit?: string;
@@ -31,10 +33,12 @@ export function getAll(resource: Resource): RouteHandler {
         query.offset !== undefined
           ? parseInt(query.offset, 10)
           : (page - 1) * limit;
+      
+      const op = resource.model.sequelize?.getDialect() === 'postgres' ? iLike : like;
 
       const searchFilter =
         resource.search && searchTerm
-          ? superFilter(resource.search, searchTerm)
+          ? superFilter(resource.search, searchTerm, op)
           : {};
 
       const data = await resource.model.findAndCountAll({

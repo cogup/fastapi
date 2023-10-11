@@ -17,23 +17,26 @@ function fixText(text: string): string[] {
   return fixedWords;
 }
 
-const formaCondition = (searchTerm: string) => {
+const formaCondition = (searchTerm: string, op = like) => {
   return {
-    [like]: `%${searchTerm}%`
+    [op]: `%${searchTerm}%`
   };
 };
 
-const addTerm = (target: any[], fullTarget: string): any[] => {
+const addTerm = (target: any[], fullTarget: string, op?: symbol): any[] => {
   const history = [fullTarget];
-  target.push(formaCondition(fullTarget));
+  target.push(formaCondition(fullTarget, op));
   const targetSplit = fullTarget.split(' ');
 
   if (targetSplit.length > 1) {
     targetSplit.forEach((word) => {
       const formated = formaCondition(word);
-      const firstLetterUpper = formaCondition(word.charAt(0).toUpperCase() + word.slice(1));
-      const upperCase = formaCondition(word.toUpperCase());
-      const lowerCase = formaCondition(word.toLowerCase());
+      const firstLetterUpper = formaCondition(
+        word.charAt(0).toUpperCase() + word.slice(1),
+        op
+      );
+      const upperCase = formaCondition(word.toUpperCase(), op);
+      const lowerCase = formaCondition(word.toLowerCase(), op);
 
       if (history.indexOf(`%${word}%`) === -1) {
         history.push(`%${word}%`);
@@ -49,20 +52,20 @@ const addTerm = (target: any[], fullTarget: string): any[] => {
   return target;
 };
 
-const superFilter = (fields: string[], searchTerm: string) => {
-  let term = addTerm([], searchTerm);
+const superFilter = (fields: string[], searchTerm: string, op?: symbol) => {
+  let term = addTerm([], searchTerm, op);
 
   const textFixed = fixText(searchTerm);
   const textFixedJoin = textFixed.join(' ');
 
   if (searchTerm !== textFixedJoin) {
-    term = addTerm(term, textFixedJoin);
+    term = addTerm(term, textFixedJoin, op);
   }
 
   const termNotAccents = removeAccents(searchTerm);
 
   if (searchTerm !== termNotAccents && textFixedJoin !== termNotAccents) {
-    term = addTerm(term, termNotAccents);
+    term = addTerm(term, termNotAccents, op);
   }
 
   const termFields: any[] = [];
