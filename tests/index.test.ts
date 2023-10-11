@@ -771,5 +771,8 @@ describe('FastAPI', () => {
       createdAt: result.createdAt,
       updatedAt: result.updatedAt
     });
+
+    await sequelize.close();
+    await fastAPI.api.close();
   });
 });
