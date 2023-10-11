@@ -52,7 +52,7 @@ export interface ResourceData {
   reference?: string | TableBuilder;
   primaryKey?: boolean;
   allowNull?: boolean;
-  search?: string[];
+  search?: boolean;
   label?: string;
   maxLength?: number;
   binary?: boolean;
@@ -117,31 +117,43 @@ export function generateResourcesFromSequelizeModels(
 
     const attributes = model.getAttributes();
 
-    for (const column of Object.keys(attributes)) {
-      const ResourceType = dataTypesResultToResourceType(attributes[column].type);
-      const primaryKey = attributes[column].primaryKey ?? false;
-      const allowNull = attributes[column].allowNull ?? false;
-      const defaultValue = attributes[column].defaultValue;
-      const unique = isUnique(attributes[column].unique);
+    for (const columnName of Object.keys(attributes)) {
+      const ResourceType = dataTypesResultToResourceType(
+        attributes[columnName].type
+      );
+      const primaryKey = attributes[columnName].primaryKey ?? false;
+      const allowNull = attributes[columnName].allowNull ?? false;
+      const defaultValue = attributes[columnName].defaultValue;
+      const unique = isUnique(attributes[columnName].unique);
       const columnResource =
         sequelizeResource.resources !== undefined
-          ? column in sequelizeResource.resources
-            ? sequelizeResource.resources[column]
+          ? columnName in sequelizeResource.resources
+            ? sequelizeResource.resources[columnName]
             : {}
           : {};
+      
+      const { search, ...attrs} = columnResource;
 
-      resource.columns[column] = {
+      resource.columns[columnName] = {
         type: ResourceType,
         primaryKey,
         allowNull,
         defaultValue,
         unique,
-        ...columnResource,
-        name: column
+        ...attrs,
+        name: columnName
       };
 
+      if (search === true) { 
+        if (resource.search === undefined) {
+          resource.search = [];
+        }
+
+        resource.search.push(columnName);
+      }
+
       if (primaryKey) {
-        resource.primaryKey = column;
+        resource.primaryKey = columnName;
       }
     }
 

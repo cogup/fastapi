@@ -2,18 +2,35 @@ import { superFilter } from './superFilter';
 import { emit } from '../events';
 import { Resource } from '../sequelize';
 import log from '../log';
+import { Reply, Request } from 'src';
 
-export type RouteHandler = (request: any, reply: any) => Promise<void> | void;
+interface GetAllQuery {
+  limit?: string;
+  search?: string;
+  order?: string;
+  orderBy?: string;
+  page?: string;
+  offset?: string;
+}
+
+export type RouteHandler = (
+  request: Request,
+  reply: Reply
+) => Promise<void> | void;
 
 export function getAll(resource: Resource): RouteHandler {
-  return async (request: any, reply: any) => {
+  return async (request: Request, reply: Reply) => {
     try {
-      const limit = parseInt(request.query.limit, 10) || 10;
-      const searchTerm = request.query.search;
-      const order = request.query.order || 'desc';
-      const orderBy = request.query.orderBy || 'updatedAt';
-      const page = parseInt(request.query.page, 10) || 1;
-      const offset = request.query.offset || (page - 1) * limit;
+      const query = request.query as GetAllQuery;
+      const limit = query.limit !== undefined ? parseInt(query.limit, 10) : 10;
+      const searchTerm = query.search;
+      const order = query.order || 'desc';
+      const orderBy = query.orderBy || 'updatedAt';
+      const page = query.page !== undefined ? parseInt(query.page, 10) : 1;
+      const offset =
+        query.offset !== undefined
+          ? parseInt(query.offset, 10)
+          : (page - 1) * limit;
 
       const searchFilter =
         resource.search && searchTerm
@@ -52,10 +69,15 @@ export function getAll(resource: Resource): RouteHandler {
   };
 }
 
+interface GetOneUpdateRemoveParams {
+  id: string;
+}
+
 export function getOne(resource: Resource): RouteHandler {
-  return async (request: any, reply: any) => {
+  return async (request: Request, reply: Reply) => {
     try {
-      const data = await resource.model.findByPk(request.params.id, {
+      const params = request.params as GetOneUpdateRemoveParams;
+      const data = await resource.model.findByPk(params.id, {
         attributes: { exclude: resource.noPropagateColumns }
       });
       const values = data?.dataValues;
@@ -75,19 +97,25 @@ export function getOne(resource: Resource): RouteHandler {
   };
 }
 
+interface CreateUpdateBody {
+  [key: string]: any;
+}
+
 export function create(resource: Resource): RouteHandler {
-  return async (request: any, reply: any) => {
+  return async (request: Request, reply: Reply) => {
     try {
+      const body = request.body as CreateUpdateBody;
+
       if (resource.privateColumns.length) {
         for (const column of resource.privateColumns) {
-          if (request.body[column] !== undefined) {
+          if (body[column] !== undefined) {
             reply.status(400).send({ error: `Cannot set ${column}.` });
             return;
           }
         }
       }
 
-      const data = await resource.model.create(request.body);
+      const data = await resource.model.create(body as any);
 
       if (resource.noPropagateColumns.length) {
         for (const column of resource.noPropagateColumns) {
@@ -106,18 +134,22 @@ export function create(resource: Resource): RouteHandler {
 }
 
 export function update(resource: Resource): RouteHandler {
-  return async (request: any, reply: any) => {
+  return async (request: Request, reply: Reply) => {
     try {
+      const body = request.body as CreateUpdateBody;
+
       if (resource.privateColumns.length) {
         for (const column of resource.privateColumns) {
-          if (request.body[column] !== undefined) {
+          if (body[column] !== undefined) {
             reply.status(400).send({ error: `Cannot set ${column}.` });
             return;
           }
         }
       }
 
-      const data = await resource.model.findByPk(request.params.id);
+      const params = request.params as GetOneUpdateRemoveParams;
+
+      const data = await resource.model.findByPk(params.id);
       const value = data?.dataValues;
 
       if (!value) {
@@ -125,7 +157,7 @@ export function update(resource: Resource): RouteHandler {
         return;
       }
 
-      await data.update(request.body);
+      await data.update(body);
 
       if (resource.noPropagateColumns.length) {
         for (const column of resource.noPropagateColumns) {
@@ -144,9 +176,10 @@ export function update(resource: Resource): RouteHandler {
 }
 
 export function remove(resource: Resource): RouteHandler {
-  return async (request: any, reply: any) => {
+  return async (request: Request, reply: Reply) => {
     try {
-      const data = await resource.model.findByPk(request.params.id);
+      const params = request.params as GetOneUpdateRemoveParams;
+      const data = await resource.model.findByPk(params.id);
       const value = data?.dataValues;
 
       if (!data) {

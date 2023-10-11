@@ -675,4 +675,101 @@ describe('FastAPI', () => {
     await sequelize.close();
     await fastAPI.api.close();
   });
+
+  it('Search in collumn', async () => {
+    const sequelize = new Sequelize('sqlite::memory:', {
+      logging: false
+    });
+
+    class Posts extends Model {
+      title!: string;
+      content!: string;
+    }
+
+    Posts.init(
+      {
+        title: {
+          type: DataTypes.STRING,
+          allowNull: false
+        },
+        content: {
+          type: DataTypes.TEXT,
+          allowNull: false
+        }
+      },
+      {
+        sequelize,
+        modelName: 'Posts',
+        createdAt: true,
+        updatedAt: true
+      }
+    );
+
+    const schema = new SchemaModelsBuilder();
+
+    schema.addResource(Posts, {
+      title: {
+        search: true
+      },
+      content: {
+        search: true
+      }
+    });
+
+    const fastAPI = new FastAPI({
+      listen: {
+        port: getRandomPort()
+      },
+      schema,
+      sequelize
+    });
+
+    await sequelize.sync({ force: true });
+
+    await fastAPI.start();
+
+    await fastAPI.api.inject({
+      method: 'POST',
+      url: '/api/posts',
+      payload: {
+        title: 'Why make this?',
+        content: 'You can make this with FastAPI'
+      }
+    });
+
+    await fastAPI.api.inject({
+      method: 'POST',
+      url: '/api/posts',
+      payload: {
+        title: 'What is FastAPI?',
+        content: 'You have to know FastAPI'
+      }
+    });
+
+    await fastAPI.api.inject({
+      method: 'POST',
+      url: '/api/posts',
+      payload: {
+        title: 'Where is FastAPI?',
+        content: 'No one knows'
+      }
+    });
+
+    const data = await fastAPI.api.inject({
+      method: 'GET',
+      url: '/api/posts?search=Where'
+    });
+
+    const item = data.json();
+
+    const result = item.data[0];
+
+    expect(result).toEqual({
+      id: 3,
+      title: 'Where is FastAPI?',
+      content: 'No one knows',
+      createdAt: result.createdAt,
+      updatedAt: result.updatedAt
+    });
+  });
 });
