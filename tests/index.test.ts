@@ -14,15 +14,6 @@ import { Decorators } from '../src';
 import { Model, DataTypes } from 'sequelize';
 
 const portsUsed: number[] = [];
-function getRandomPort() {
-  let port = 0;
-
-  do {
-    port = Math.floor(Math.random() * 65535) + 1;
-  } while (portsUsed.includes(port));
-
-  return port;
-}
 
 describe('FastAPI', () => {
   describe('Lib and Loaders', () => {
@@ -89,9 +80,6 @@ describe('FastAPI', () => {
 
       expect(result).toBeTruthy();
       expect(result?.dataValues.message).toBe(mockHello.message);
-
-      await sequelize.close();
-      await fastAPI.api.close();
     });
 
     it('should add a route for /hello', async () => {
@@ -160,11 +148,7 @@ describe('FastAPI', () => {
 
   describe('Test Decorations', () => {
     it('Test Handlers', async () => {
-      const fastAPI = new FastAPI({
-        listen: {
-          port: getRandomPort()
-        }
-      });
+      const fastAPI = new FastAPI();
 
       const schema = new SchemaBuilder({
         auto: [AutoColumn.ID, AutoColumn.CREATED_AT, AutoColumn.UPDATED_AT]
@@ -256,11 +240,7 @@ describe('FastAPI', () => {
     });
 
     it('Test Handlers Instancied', async () => {
-      const fastAPI = new FastAPI({
-        listen: {
-          port: getRandomPort()
-        }
-      });
+      const fastAPI = new FastAPI();
 
       const schema = new SchemaBuilder({
         auto: [AutoColumn.ID, AutoColumn.CREATED_AT, AutoColumn.UPDATED_AT]
@@ -351,11 +331,7 @@ describe('FastAPI', () => {
     });
 
     it('Test Routes', async () => {
-      const fastAPI = new FastAPI({
-        listen: {
-          port: getRandomPort()
-        }
-      });
+      const fastAPI = new FastAPI();
 
       interface PostRequestBody {
         message: string;
@@ -454,11 +430,7 @@ describe('FastAPI', () => {
     });
 
     it('Test Routes Instancied', async () => {
-      const fastAPI = new FastAPI({
-        listen: {
-          port: getRandomPort()
-        }
-      });
+      const fastAPI = new FastAPI();
 
       interface PostRequestBody {
         message: string;
@@ -631,16 +603,13 @@ describe('FastAPI', () => {
     });
 
     const fastAPI = new FastAPI({
-      listen: {
-        port: getRandomPort()
-      },
       schema,
       sequelize
     });
 
     await sequelize.sync({ force: true });
 
-    await fastAPI.start();
+    await fastAPI.loadResources();
 
     const data = await fastAPI.api.inject({
       method: 'POST',
@@ -671,9 +640,6 @@ describe('FastAPI', () => {
       title: 'Post 1',
       content: 'Content 1'
     });
-
-    await sequelize.close();
-    await fastAPI.api.close();
   });
 
   it('Search in collumn', async () => {
@@ -717,16 +683,13 @@ describe('FastAPI', () => {
     });
 
     const fastAPI = new FastAPI({
-      listen: {
-        port: getRandomPort()
-      },
       schema,
       sequelize
     });
 
     await sequelize.sync({ force: true });
 
-    await fastAPI.start();
+    await fastAPI.loadResources();
 
     await fastAPI.api.inject({
       method: 'POST',
@@ -771,8 +734,5 @@ describe('FastAPI', () => {
       createdAt: result.createdAt,
       updatedAt: result.updatedAt
     });
-
-    await sequelize.close();
-    await fastAPI.api.close();
   });
 });
