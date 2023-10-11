@@ -2,7 +2,7 @@ import { superFilter } from './superFilter';
 import { emit } from '../events';
 import { Resource } from '../sequelize';
 import log from '../log';
-import { Reply, Request } from 'src';
+import { Reply, Request } from '../../index';
 import { Op } from 'sequelize';
 const { like, iLike } = Op;
 
