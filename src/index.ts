@@ -424,6 +424,14 @@ export class FastAPI {
     remove(modelName, action);
     return this;
   }
+
+  getOpenAPISpec(): OpenAPI {
+    if (!this.openAPISpec) {
+      throw new Error('OpenAPI spec not found');
+    }
+
+    return this.openAPISpec;
+  }
 }
 
 export { PathBuilder, RoutesBuilder } from './resources/routes';
