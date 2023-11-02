@@ -1,8 +1,5 @@
 import { Operation } from '../resources/openapi/openapiTypes';
-import {
-  MethodType,
-  Routes
-} from '../resources/routes';
+import { MethodType, Routes } from '../resources/routes';
 import 'reflect-metadata';
 import { FastAPI } from '..';
 
@@ -59,7 +56,9 @@ export function Patch(route: string | Route) {
 export class MakeRouters {
   [key: string]: any;
 
-  onLoad(_fastAPI: FastAPI) {}
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  onLoad(fastAPI: FastAPI) {}
 
   getRoutes(): Routes {
     const routes: Routes = {};

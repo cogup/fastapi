@@ -5,8 +5,8 @@ import { Routes, RoutesBuilder } from '../resources/routes';
 import { JSONSchema7 } from 'json-schema';
 
 export interface OpenApiBuilded {
-  spec: OpenAPI,
-  routes: Routes
+  spec: OpenAPI;
+  routes: Routes;
 }
 
 export default function builderOpenapi(data: DocData): OpenApiBuilded {

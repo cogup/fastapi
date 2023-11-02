@@ -1,5 +1,4 @@
-import { Model } from 'src';
-import { convertToPlural } from './openapi/utils';
+import { Model } from 'index';
 
 export interface EventCallback {
   (err: any, data: any): void;
@@ -20,7 +19,11 @@ function resolveEventName<T>(model: EventKey, action: T): string {
   return `${name}.${action}`;
 }
 
-export function on<T>(model: EventKey, action: T, callback: EventCallback): void {
+export function on<T>(
+  model: EventKey,
+  action: T,
+  callback: EventCallback
+): void {
   const event = resolveEventName(model, action);
 
   if (!eventsStorage[event]) {
@@ -30,7 +33,12 @@ export function on<T>(model: EventKey, action: T, callback: EventCallback): void
   eventsStorage[event].push(callback);
 }
 
-export function emit<T>(model: EventKey, action: T, err: any, data?: any): void {
+export function emit<T>(
+  model: EventKey,
+  action: T,
+  err: any,
+  data?: any
+): void {
   const event = resolveEventName(model, action);
 
   if (eventsStorage[event]) {

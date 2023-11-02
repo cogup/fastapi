@@ -24,7 +24,7 @@ import {
 import healthRoute from './routes/health';
 import { on, emit, remove, EventCallback, EventKey } from './resources/events';
 import { AdminData, OpenAPI, Paths } from './resources/openapi/openapiTypes';
-import { Options, Sequelize } from 'sequelize';
+import { Sequelize } from 'sequelize';
 import { promisify } from 'util';
 import log from './resources/log';
 import { DocInfo, ServerObject } from './resources/openapi/doc';
@@ -39,14 +39,20 @@ import {
   FastifyReply,
   FastifyRequest
 } from 'fastify';
-import { handlers, routes } from './decorators';
 import { MakeHandlers, getResourceName } from './decorators/handlers';
 import { MakeRouters } from './decorators/routes';
+import fs from 'fs';
 
-// get package.json version
-const rootPath = process.cwd();
-const packagePath = `${rootPath}/package.json`;
-const version = require(packagePath).version;
+function getAppVersion(): string {
+  try {
+    const packageJson = fs.readFileSync('./package.json', 'utf8');
+    const packageObject = JSON.parse(packageJson);
+
+    return packageObject.version;
+  } catch {
+    return 'undefined';
+  }
+}
 
 export interface LoadSpecOptions {
   resources: Resources;
@@ -79,12 +85,6 @@ export interface Models {
   [key: string]: typeof SequelizeModel;
 }
 
-interface LoadedResources {
-  schemas: boolean;
-  routes: boolean;
-  api: boolean;
-}
-
 export type RoutesType =
   | Routes
   | RoutesBuilder
@@ -96,7 +96,7 @@ export class FastAPI {
   info: DocInfo = {
     title: 'FastAPI',
     description: 'FastAPI',
-    version
+    version: getAppVersion()
   };
   servers: ServerObject[] = [];
   listenConfig: FastifyListenOptions = {
@@ -447,6 +447,7 @@ export {
 export { HandlerType } from './resources/routes/routes';
 
 export { FastifyReply as Reply, FastifyRequest as Request };
+export { OpenAPI } from './resources/openapi/openapiTypes';
 
 export {
   Get,

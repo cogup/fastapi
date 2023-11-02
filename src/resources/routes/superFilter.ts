@@ -97,7 +97,7 @@ function removeAccents(text: string): string {
     y: '[yÿ]'
   };
 
-  for (let letter in accentMap) {
+  for (const letter in accentMap) {
     const regex = new RegExp(accentMap[letter], 'gi');
     text = text.replace(regex, letter);
   }

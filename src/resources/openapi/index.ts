@@ -1,10 +1,6 @@
 import { Resource } from '../sequelize';
 import { convertType } from './dataTypes';
-import {
-  AdminData,
-  OpenAPI,
-  Properties
-} from './openapiTypes';
+import { AdminData, OpenAPI, Properties } from './openapiTypes';
 import { makeResponses } from './responses';
 import { convertToPlural, convertToSingle } from './utils';
 
@@ -24,7 +20,7 @@ interface Property {
   minimum?: number;
   maximum?: number;
   default?: any;
-  imutable?: boolean;
+  immutable?: boolean;
   anyOf?: Property[];
   allOf?: Property[];
   oneOf?: Property[];
@@ -64,11 +60,11 @@ const removeImutable = (
   const newProperties: SchemaProperties = {};
 
   Object.entries(properties).forEach(([key, value]) => {
-    const imutable = value.imutable;
+    const immutable = value.immutable;
 
-    delete value.imutable;
+    delete value.immutable;
 
-    if (removeOnlyAllProp && imutable) {
+    if (removeOnlyAllProp && immutable) {
       return;
     }
 
@@ -107,7 +103,7 @@ export function generatePaths(name: string): HandlerPaths {
 
   return {
     many: `/api/${pluralName}`,
-    single: `/api/${pluralName}/{id}`,
+    single: `/api/${pluralName}/{id}`
   };
 }
 
@@ -118,7 +114,7 @@ export function generateOpenAPISchemas(
   const { model, columns, search, name, group } = resource;
   const groupName =
     group !== undefined ? group.toLowerCase() : convertToSingle(name);
-    group !== undefined ? group.toLowerCase() : convertToSingle(name);
+  group !== undefined ? group.toLowerCase() : convertToSingle(name);
   const handlerPaths = generatePaths(name);
 
   const attributeKeys = Object.keys(model.getAttributes());
@@ -165,8 +161,8 @@ export function generateOpenAPISchemas(
       property.default = column.defaultValue;
     }
 
-    if ('imutable' in column) {
-      property.imutable = column.imutable;
+    if ('immutable' in column) {
+      property.immutable = column.immutable;
     }
 
     if (column.allowNull === true) {

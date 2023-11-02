@@ -25,7 +25,7 @@ export enum MethodType {
   PATCH = 'patch'
 }
 
-export enum HandlerMethodType { 
+export enum HandlerMethodType {
   GET_ALL = 'getAll',
   GET_ONE = 'getOne',
   CREATE = 'create',
@@ -94,28 +94,24 @@ export function routesToPaths(routes: Routes): Paths {
     const route = routes[path];
 
     if (route.get) {
-      const { handler, ...get } = route.get;
+      const { ...get } = route.get;
       paths[path].get = get;
     }
 
     if (route.post) {
-      const { handler, ...post } = route.post;
-      paths[path].post = post;
+      paths[path].post = route.post;
     }
 
     if (route.put) {
-      const { handler, ...put } = route.put;
-      paths[path].put = put;
+      paths[path].put = route.put;
     }
 
     if (route.delete) {
-      const { handler, ...del } = route.delete;
-      paths[path].delete = del;
+      paths[path].delete = route.delete;
     }
 
     if (route.patch) {
-      const { handler, ...patch } = route.patch;
-      paths[path].patch = patch;
+      paths[path].patch = route.patch;
     }
   });
 

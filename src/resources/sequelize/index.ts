@@ -31,7 +31,6 @@ export enum ResourceType {
   JSON = 'json',
   INTEGER = 'integer',
   INT = 'int',
-  SERIAL = 'int',
   FLOAT = 'float',
   CODE = 'code',
   NUMERIC = 'numeric'
@@ -43,7 +42,7 @@ export interface ResourceData {
   values?: string[];
   min?: number;
   max?: number;
-  imutable?: boolean;
+  immutable?: boolean;
   required?: boolean;
   private?: boolean;
   protected?: boolean;
@@ -85,7 +84,7 @@ export interface Resource {
 }
 
 export interface Resources {
-  [resurceName: string]: Resource;
+  [resourceName: string]: Resource;
 }
 
 export interface SequelizeResources {
@@ -96,7 +95,7 @@ export interface SequelizeResources {
 export function generateResourcesFromSequelizeModels(
   sequelizeResources: SequelizeResources[] | SchemaModelsBuilder
 ) {
-  if (sequelizeResources instanceof SchemaModelsBuilder) { 
+  if (sequelizeResources instanceof SchemaModelsBuilder) {
     sequelizeResources = sequelizeResources.schema;
   }
 
@@ -131,8 +130,8 @@ export function generateResourcesFromSequelizeModels(
             ? sequelizeResource.resources[columnName]
             : {}
           : {};
-      
-      const { search, ...attrs} = columnResource;
+
+      const { search, ...attrs } = columnResource;
 
       resource.columns[columnName] = {
         type: ResourceType,
@@ -144,7 +143,7 @@ export function generateResourcesFromSequelizeModels(
         name: columnName
       };
 
-      if (search === true) { 
+      if (search === true) {
         if (resource.search === undefined) {
           resource.search = [];
         }
@@ -202,7 +201,7 @@ export function generateResourcesFromJSON(
     const tableColumns: Record<string, any> = {};
     const tableName = getTableName(table.name);
     const singleName = convertToSingle(tableName);
-    const resurceName = getResourceName(table.name);
+    const resourceName = getResourceName(table.name);
     const privateColumns = table.columns
       .filter((column) => column.private)
       .map((column) => column.name);
@@ -257,13 +256,13 @@ export function generateResourcesFromJSON(
 
     resource.model = DynamicTable;
 
-    resources[resurceName] = resource;
+    resources[resourceName] = resource;
   }
 
   // Configurar as associações entre os modelos
   for (const table of jsonSchema.tables) {
-    const resurceName = getResourceName(table.name);
-    const model = resources[resurceName].model;
+    const resourceName = getResourceName(table.name);
+    const model = resources[resourceName].model;
 
     for (const column of table.columns) {
       if (!column.reference) {

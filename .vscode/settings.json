@@ -35,6 +35,7 @@
     ],
     "cSpell.words": [
         "Fastify",
-        "openapi"
+        "openapi",
+        "pino"
     ]
 }

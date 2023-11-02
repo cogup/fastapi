@@ -1,5 +1,11 @@
-import { Model } from 'sequelize';
-import { Column, ResourceType, ResourceData, Schema, SequelizeModel, SequelizeResources } from './index';
+import {
+  Column,
+  ResourceType,
+  ResourceData,
+  Schema,
+  SequelizeModel,
+  SequelizeResources
+} from './index';
 
 export interface TableBuilderProps {
   name: string;
@@ -57,7 +63,7 @@ export class TableBuilder {
       this.column({
         name: 'createdAt',
         type: ResourceType.DATE,
-        imutable: true
+        immutable: true
       });
     }
 

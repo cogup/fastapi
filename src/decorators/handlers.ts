@@ -1,8 +1,5 @@
 import { generatePaths } from '../resources/openapi/index';
-import {
-  HandlerMethodType,
-  Handlers,
-} from '../resources/routes';
+import { HandlerMethodType, Handlers } from '../resources/routes';
 import { TableBuilder } from '../resources/sequelize/builder';
 import 'reflect-metadata';
 import { FastAPI } from '..';
@@ -78,7 +75,9 @@ export function getPathByMethod(
 export class MakeHandlers {
   [key: string]: any;
 
-  onLoad(_fastAPI: FastAPI) {}
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  onLoad(fastAPI: FastAPI) {}
 
   getHandlers(): Handlers {
     const handlers: Handlers = {};

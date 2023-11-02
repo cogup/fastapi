@@ -93,7 +93,7 @@ export function convertOpenAPItoSchemas(openAPI: OpenAPI): OpenAPI {
             parameter.in === 'path' &&
             !declaredPathParams.includes(`{${parameter.name}}`)
           ) {
-            console.warn(
+            throw new Error(
               `Declared path parameter "${parameter.name}" needs to be defined as a path parameter at either the path or operation level`
             );
           }
@@ -123,6 +123,7 @@ function getReferenceSchemaNameInner(
   statusCode: string | number
 ): string {
   return `${method.toUpperCase()}_${path.replace(
+    // eslint-disable-next-line no-useless-escape
     /[\/\:\{\}]/g,
     '_'
   )}_${statusCode}`

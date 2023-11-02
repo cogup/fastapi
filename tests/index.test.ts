@@ -919,10 +919,6 @@ describe('FastAPI', () => {
   it('Test events string and action number', async () => {
     const fastAPI = new FastAPI();
 
-    enum CustomEvent {
-      TEST = 'TEST'
-    }
-
     fastAPI.on('test', 1, (err, data) => {
       expect(err).toBeFalsy();
       expect(data).toBeTruthy();
