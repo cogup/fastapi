@@ -32,5 +32,9 @@
         "javascriptreact",
         "typescript",
         "typescriptreact"
+    ],
+    "cSpell.words": [
+        "Fastify",
+        "openapi"
     ]
 }

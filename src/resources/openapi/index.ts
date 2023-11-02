@@ -111,7 +111,7 @@ export function generatePaths(name: string): HandlerPaths {
   };
 }
 
-export function generateOpenapiSchemas(
+export function generateOpenAPISchemas(
   resource: Resource,
   tags: Tags
 ): OpenAPI {

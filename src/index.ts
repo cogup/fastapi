@@ -1,11 +1,5 @@
 import api from './middle/serve';
-import {
-  FastifyRequest,
-  FastifyReply,
-  FastifyListenOptions,
-  FastifyInstance
-} from 'fastify';
-import { Tags, generateOpenapiSchemas } from './resources/openapi';
+import { Tags, generateOpenAPISchemas } from './resources/openapi';
 import {
   HandlerMethods,
   Methods,
@@ -28,7 +22,7 @@ import {
   generateResourcesFromSequelizeModels
 } from './resources/sequelize';
 import healthRoute from './routes/health';
-import { on, emit, remove, EventCallback } from './resources/events';
+import { on, emit, remove, EventCallback, EventKey } from './resources/events';
 import { AdminData, OpenAPI, Paths } from './resources/openapi/openapiTypes';
 import { Options, Sequelize } from 'sequelize';
 import { promisify } from 'util';
@@ -39,7 +33,15 @@ import {
   SchemaModelsBuilder,
   TableBuilder
 } from './resources/sequelize/builder';
-import { MakeHandlers, MakeRouters, getResourceName } from './routes/makes';
+import {
+  FastifyInstance,
+  FastifyListenOptions,
+  FastifyReply,
+  FastifyRequest
+} from 'fastify';
+import { handlers, routes } from './decorators';
+import { MakeHandlers, getResourceName } from './decorators/handlers';
+import { MakeRouters } from './decorators/routes';
 
 // get package.json version
 const rootPath = process.cwd();
@@ -54,10 +56,10 @@ export interface LoadSpecOptions {
 }
 
 export interface FastAPIOptions {
-  routes?: Routes[];
+  routes?: RoutesType[];
+  schema?: Schema | SequelizeResources[] | SchemaModelsBuilder;
   tags?: Tags;
   handlers?: Handlers;
-  schema?: Schema | SequelizeResources[] | SchemaModelsBuilder;
   resources?: Resources;
   sequelize?: Sequelize;
   cors?: Cors;
@@ -65,6 +67,8 @@ export interface FastAPIOptions {
   listen?: FastifyListenOptions;
   info?: DocInfo;
   servers?: ServerObject[];
+  autoLoadSchema?: boolean;
+  autoLoadRoutes?: boolean;
 }
 
 export interface Cors {
@@ -81,6 +85,13 @@ interface LoadedResources {
   api: boolean;
 }
 
+export type RoutesType =
+  | Routes
+  | RoutesBuilder
+  | PathBuilder
+  | typeof MakeRouters
+  | MakeRouters;
+
 export class FastAPI {
   info: DocInfo = {
     title: 'FastAPI',
@@ -92,6 +103,7 @@ export class FastAPI {
     port: 3000,
     host: '0.0.0.0'
   };
+  rawRoutes: RoutesType[] = [];
   routes: Routes[] = [];
   tags: Tags = {
     create: ['Creates'],
@@ -111,18 +123,15 @@ export class FastAPI {
   api: FastifyInstance;
   private listenFn: (options: FastifyListenOptions) => Promise<void>;
   sequelize?: Sequelize;
-  openapiSpec?: OpenAPI;
+  openAPISpec?: OpenAPI;
   private afterLoad: MakeHandlers | MakeRouters[] = [];
-  private loadedResources: LoadedResources;
+  autoLoadSchema = true;
+  autoLoadRoutes = true;
 
   constructor(props?: FastAPIOptions) {
     if (props) {
       if (props.schema !== undefined) {
         this.schema = props.schema;
-      }
-
-      if (props.routes !== undefined) {
-        this.routes = props.routes;
       }
 
       if (props.handlers !== undefined) {
@@ -163,16 +172,31 @@ export class FastAPI {
       if (props.sequelize !== undefined) {
         this.sequelize = props.sequelize;
       }
+
+      if (props.autoLoadSchema !== undefined) {
+        this.autoLoadSchema = props.autoLoadSchema;
+      }
+
+      if (props.autoLoadRoutes !== undefined) {
+        this.autoLoadSchema = props.autoLoadRoutes;
+      }
+
+      if (props.routes !== undefined) {
+        this.rawRoutes = props.routes;
+      }
     }
 
     this.api = api();
     this.listenFn = promisify(this.api.listen.bind(this.api));
 
-    this.loadedResources = {
-      schemas: false,
-      routes: false,
-      api: false
-    };
+    if (this.autoLoadSchema && this.schema !== undefined) {
+      this.loadSchema();
+
+      if (this.autoLoadRoutes) {
+        this.loadRawRoutes();
+        this.loadRoutes();
+      }
+    }
 
     return this;
   }
@@ -185,11 +209,15 @@ export class FastAPI {
     this.schema = schema;
   }
 
+  private loadRawRoutes(): void {
+    for (const route of this.rawRoutes) {
+      this.addRoutes(route);
+    }
+  }
+
   loadSchema(
     schema?: Schema | SequelizeResources[] | SchemaModelsBuilder
   ): void {
-    if (this.loadedResources.schemas) return;
-
     if (schema === undefined) {
       schema = this.schema;
     } else {
@@ -229,9 +257,7 @@ export class FastAPI {
   }
 
   loadRoutes(): void {
-    if (this.loadedResources.routes) return;
-
-    let shemasPaths: Paths = {};
+    let schemasPaths: Paths = {};
 
     const resources = this.resources;
     const tags = this.tags;
@@ -244,7 +270,7 @@ export class FastAPI {
 
     for (const key in this.resources) {
       const resource = resources[key];
-      const openapiSchemas = generateOpenapiSchemas(resource, tags);
+      const openapiSchemas = generateOpenAPISchemas(resource, tags);
       const paths = openapiSchemas.paths as Paths;
       const adminData = openapiSchemas['x-admin'] as AdminData;
 
@@ -260,7 +286,7 @@ export class FastAPI {
         ...adminData.resources
       };
 
-      shemasPaths = { ...shemasPaths, ...paths } as Paths;
+      schemasPaths = { ...schemasPaths, ...paths } as Paths;
     }
 
     let paths = {} as Paths;
@@ -277,7 +303,7 @@ export class FastAPI {
     const healthPaths = routesToPaths(health);
 
     const docPaths = {
-      ...shemasPaths,
+      ...schemasPaths,
       ...healthPaths,
       ...paths
     };
@@ -289,7 +315,7 @@ export class FastAPI {
       admin: adminsData
     });
 
-    this.openapiSpec = openapi.spec;
+    this.openAPISpec = openapi.spec;
 
     createRoutes.createRoutes(openapi.routes);
 
@@ -302,11 +328,6 @@ export class FastAPI {
     });
   }
 
-  loadResources() {
-    this.loadSchema();
-    this.loadRoutes();
-  }
-
   afterLoadExecute() {
     if (this.afterLoad) {
       this.afterLoad.forEach((builder: MakeHandlers | MakeRouters) => {
@@ -316,31 +337,15 @@ export class FastAPI {
   }
 
   async listen() {
-    if (this.loadedResources.api) return;
-
     await this.listenFn(this.listenConfig);
     this.afterLoadExecute();
   }
 
-  async start(): Promise<void> {
-    this.loadResources();
-    await this.listen();
-  }
-
-  //Resources
   getResource(resourceName: string | TableBuilder): Resource {
     return this.resources[getResourceName(resourceName)];
   }
 
-  // Routes
-  addRoutes(
-    routes:
-      | Routes
-      | RoutesBuilder
-      | PathBuilder
-      | typeof MakeRouters
-      | MakeRouters
-  ): void {
+  addRoutes(routes: RoutesType): void {
     if (routes instanceof RoutesBuilder || routes instanceof PathBuilder) {
       routes = routes.build();
     } else if (routes instanceof MakeRouters) {
@@ -405,17 +410,17 @@ export class FastAPI {
   }
 
   // Events
-  on(modelName: string, action: string, callback: EventCallback): FastAPI {
+  on<T>(modelName: EventKey, action: T, callback: EventCallback): FastAPI {
     on(modelName, action, callback);
     return this;
   }
 
-  emit(modelName: string, action: string, err: any, data: any): FastAPI {
+  emit<T>(modelName: EventKey, action: T, err: any, data: any): FastAPI {
     emit(modelName, action, err, data);
     return this;
   }
 
-  removeListener(modelName: string, action: string): FastAPI {
+  removeListener<T>(modelName: EventKey, action: T): FastAPI {
     remove(modelName, action);
     return this;
   }
@@ -439,6 +444,23 @@ export {
   HandlerMethodType,
   Handlers
 };
+export { HandlerType } from './resources/routes/routes';
+
 export { FastifyReply as Reply, FastifyRequest as Request };
-export { DataTypes } from 'sequelize';
-export * as Decorators from './routes/makes';
+
+export {
+  Get,
+  Post,
+  Put,
+  Patch,
+  Delete,
+  MakeRouters
+} from './decorators/routes';
+export {
+  Create,
+  GetAll,
+  GetOne,
+  Update,
+  Remove,
+  MakeHandlers
+} from './decorators/handlers';

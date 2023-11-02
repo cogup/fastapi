@@ -1,19 +1,23 @@
-import { FastifyReply, FastifyRequest } from 'fastify';
 import {
   AutoColumn,
+  Create,
   FastAPI,
+  Get,
+  HandlerType,
+  MakeHandlers,
   makeResponses,
+  MakeRouters,
+  Model,
+  Post,
   RoutesBuilder,
   SchemaBuilder,
   SchemaModelsBuilder,
+  Sequelize,
   TableBuilder
 } from '../src/index';
-import { Sequelize } from 'sequelize';
 import { ResourceType } from '../src/resources/sequelize';
-import { Decorators } from '../src';
-import { Model, DataTypes } from 'sequelize';
-
-const portsUsed: number[] = [];
+import { FastifyRequest, FastifyReply } from 'fastify';
+import { DataTypes } from 'sequelize';
 
 describe('FastAPI', () => {
   describe('Lib and Loaders', () => {
@@ -178,9 +182,7 @@ describe('FastAPI', () => {
         })
         .build();
 
-      const { Create } = Decorators;
-
-      class MyHandler extends Decorators.MakeHandlers {
+      class MyHandler extends MakeHandlers {
         @Create(messages)
         messagesCreate(_request: FastifyRequest, reply: FastifyReply) {
           reply.status(201).send({
@@ -207,7 +209,8 @@ describe('FastAPI', () => {
 
       fastAPI.addHandlers(MyHandler);
 
-      fastAPI.loadResources();
+      fastAPI.loadSchema();
+      fastAPI.loadRoutes();
 
       const data = await fastAPI.api.inject({
         method: 'POST',
@@ -270,9 +273,7 @@ describe('FastAPI', () => {
         })
         .build();
 
-      const { Create } = Decorators;
-
-      class MyHandler extends Decorators.MakeHandlers {
+      class MyHandler extends MakeHandlers {
         @Create(messages)
         messagesCreate(_request: FastifyRequest, reply: FastifyReply) {
           reply.status(201).send({
@@ -298,7 +299,8 @@ describe('FastAPI', () => {
 
       fastAPI.addHandlers(new MyHandler());
 
-      fastAPI.loadResources();
+      fastAPI.loadSchema();
+      fastAPI.loadRoutes();
 
       const data = await fastAPI.api.inject({
         method: 'POST',
@@ -337,13 +339,11 @@ describe('FastAPI', () => {
         message: string;
       }
 
-      const { Get, Post } = Decorators;
-
-      class MyRoutes extends Decorators.MakeRouters {
+      class MyRoutes extends MakeRouters {
         port: number = 0;
 
-        onLoad(fastapi: FastAPI): void {
-          this.port = fastapi.listenConfig.port ?? 0;
+        onLoad(fastAPI: FastAPI): void {
+          this.port = fastAPI.listenConfig.port ?? 0;
         }
 
         @Get('/test')
@@ -436,9 +436,7 @@ describe('FastAPI', () => {
         message: string;
       }
 
-      const { Get, Post } = Decorators;
-
-      class MyRoutes extends Decorators.MakeRouters {
+      class MyRoutes extends MakeRouters {
         port: number = 0;
 
         constructor(port: number) {
@@ -536,9 +534,9 @@ describe('FastAPI', () => {
     });
 
     class User extends Model {
-      id!: number;
-      name!: string;
-      email!: string;
+      declare id: number;
+      declare name: string;
+      declare email: string;
     }
 
     User.init(
@@ -564,9 +562,9 @@ describe('FastAPI', () => {
     );
 
     class Post extends Model {
-      id!: number;
-      title!: string;
-      content!: string;
+      declare id: number;
+      declare title: string;
+      declare content: string;
     }
 
     Post.init(
@@ -609,8 +607,6 @@ describe('FastAPI', () => {
 
     await sequelize.sync({ force: true });
 
-    await fastAPI.loadResources();
-
     const data = await fastAPI.api.inject({
       method: 'POST',
       url: '/api/users',
@@ -621,7 +617,7 @@ describe('FastAPI', () => {
     });
 
     expect(data.json()).toEqual({
-      id: 0,
+      id: 1,
       name: 'User 1',
       email: 'example@mail.com'
     });
@@ -636,7 +632,7 @@ describe('FastAPI', () => {
     });
 
     expect(data2.json()).toEqual({
-      id: 0,
+      id: 1,
       title: 'Post 1',
       content: 'Content 1'
     });
@@ -648,8 +644,9 @@ describe('FastAPI', () => {
     });
 
     class Posts extends Model {
-      title!: string;
-      content!: string;
+      declare id: number;
+      declare title: string;
+      declare content: string;
     }
 
     Posts.init(
@@ -688,8 +685,6 @@ describe('FastAPI', () => {
     });
 
     await sequelize.sync({ force: true });
-
-    await fastAPI.loadResources();
 
     await fastAPI.api.inject({
       method: 'POST',
@@ -734,5 +729,210 @@ describe('FastAPI', () => {
       createdAt: result.createdAt,
       updatedAt: result.updatedAt
     });
+  });
+
+  describe('Test events', () => {
+    it('Test events by Model', async () => {
+      const sequelize = new Sequelize('sqlite::memory:', {
+        logging: false
+      });
+
+      class User extends Model {
+        declare id: number;
+        declare name: string;
+        declare email: string;
+      }
+
+      User.init(
+        {
+          id: {
+            type: DataTypes.INTEGER,
+            autoIncrement: true,
+            primaryKey: true
+          },
+          name: {
+            type: DataTypes.STRING
+          },
+          email: {
+            type: DataTypes.STRING
+          }
+        },
+        {
+          sequelize,
+          modelName: 'User',
+          createdAt: false,
+          updatedAt: false
+        }
+      );
+
+      const schema = new SchemaModelsBuilder();
+
+      schema.addResource(User);
+
+      const fastAPI = new FastAPI({
+        schema,
+        sequelize
+      });
+
+      fastAPI.on(User, HandlerType.CREATE, (err, data) => {
+        expect(err).toBeFalsy();
+        expect(data).toBeTruthy();
+      });
+
+      await fastAPI.api.inject({
+        method: 'POST',
+        url: '/api/users',
+        payload: {
+          name: 'User 1',
+          email: 'test@test.test'
+        }
+      });
+    });
+  });
+
+  it('Test events by Model', async () => {
+    const sequelize = new Sequelize('sqlite::memory:', {
+      logging: false
+    });
+
+    class User extends Model {
+      declare id: number;
+      declare name: string;
+      declare email: string;
+    }
+
+    User.init(
+      {
+        id: {
+          type: DataTypes.INTEGER,
+          autoIncrement: true,
+          primaryKey: true
+        },
+        name: {
+          type: DataTypes.STRING
+        },
+        email: {
+          type: DataTypes.STRING
+        }
+      },
+      {
+        sequelize,
+        modelName: 'User',
+        createdAt: false,
+        updatedAt: false
+      }
+    );
+
+    const schema = new SchemaModelsBuilder();
+
+    schema.addResource(User);
+
+    const fastAPI = new FastAPI({
+      schema,
+      sequelize
+    });
+
+    fastAPI.on(User, HandlerType.CREATE, (err, data) => {
+      expect(err).toBeFalsy();
+      expect(data).toBeTruthy();
+    });
+
+    await fastAPI.api.inject({
+      method: 'POST',
+      url: '/api/users',
+      payload: {
+        name: 'User 1',
+        email: 'test@test.test'
+      }
+    });
+  });
+
+  it('Test events custom model', async () => {
+    const sequelize = new Sequelize('sqlite::memory:', {
+      logging: false
+    });
+
+    class User extends Model {
+      declare id: number;
+      declare name: string;
+      declare email: string;
+    }
+
+    User.init(
+      {
+        id: {
+          type: DataTypes.INTEGER,
+          autoIncrement: true,
+          primaryKey: true
+        },
+        name: {
+          type: DataTypes.STRING
+        },
+        email: {
+          type: DataTypes.STRING
+        }
+      },
+      {
+        sequelize,
+        modelName: 'User',
+        createdAt: false,
+        updatedAt: false
+      }
+    );
+
+    const schema = new SchemaModelsBuilder();
+
+    schema.addResource(User);
+
+    const fastAPI = new FastAPI({
+      schema,
+      sequelize
+    });
+
+    enum CustomEvent {
+      TEST = 'TEST'
+    }
+
+    fastAPI.on(User, CustomEvent.TEST, (err, data) => {
+      expect(err).toBeFalsy();
+      expect(data).toBeTruthy();
+    });
+
+    fastAPI.emit(User, CustomEvent.TEST, null, { test: true });
+  });
+
+  it('Test events string', async () => {
+    const fastAPI = new FastAPI();
+
+    enum CustomEvent {
+      TEST = 'TEST'
+    }
+
+    fastAPI.on('test', CustomEvent.TEST, (err, data) => {
+      expect(err).toBeFalsy();
+      expect(data).toBeTruthy();
+    });
+
+    fastAPI.emit('test', CustomEvent.TEST, null, { test: true });
+  });
+
+  it('Test events string and action number', async () => {
+    const fastAPI = new FastAPI();
+
+    enum CustomEvent {
+      TEST = 'TEST'
+    }
+
+    fastAPI.on('test', 1, (err, data) => {
+      expect(err).toBeFalsy();
+      expect(data).toBeTruthy();
+    });
+
+    fastAPI.on('test', 2, (err, data) => {
+      expect(err).toBeFalsy();
+      expect(data).toBeTruthy();
+    });
+
+    fastAPI.emit('test', 2, null, { test: true });
   });
 });

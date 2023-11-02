@@ -14,7 +14,7 @@ export default function builderOpenapi(data: DocData): OpenApiBuilded {
   const openapiSchema = objectToJSONSchema7(doc);
   const route = new RoutesBuilder('openapi');
 
-  const openapiSpec = {
+  const openAPISpec = {
     tags: ['Documentation'],
     summary: 'Get OpenAPI JSON',
     description: 'Get OpenAPI JSON',
@@ -24,7 +24,7 @@ export default function builderOpenapi(data: DocData): OpenApiBuilded {
   const routes = route
     .path('/openapi.json')
     .get({
-      ...openapiSpec,
+      ...openAPISpec,
       handler: (_request, reply: FastifyReply): void => {
         reply.send(doc);
       }

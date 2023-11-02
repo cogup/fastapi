@@ -6,6 +6,14 @@ import { Reply, Request } from '../../index';
 import { Op } from 'sequelize';
 const { like, iLike } = Op;
 
+export enum HandlerType {
+  GET_ALL = 'GET_ALL',
+  GET_ONE = 'GET_ONE',
+  CREATE = 'CREATE',
+  UPDATE = 'UPDATE',
+  REMOVE = 'REMOVE'
+}
+
 interface GetAllQuery {
   limit?: string;
   search?: string;
@@ -33,8 +41,9 @@ export function getAll(resource: Resource): RouteHandler {
         query.offset !== undefined
           ? parseInt(query.offset, 10)
           : (page - 1) * limit;
-      
-      const op = resource.model.sequelize?.getDialect() === 'postgres' ? iLike : like;
+
+      const op =
+        resource.model.sequelize?.getDialect() === 'postgres' ? iLike : like;
 
       const searchFilter =
         resource.search && searchTerm
@@ -64,11 +73,11 @@ export function getAll(resource: Resource): RouteHandler {
         }
       });
 
-      emit(resource.name, 'list', null, data.rows);
+      emit(resource.model, HandlerType.GET_ALL, null, data.rows);
     } catch (err) {
       log.error(err);
       reply.status(500).send({ error: `Failed to fetch ${resource.name}.` });
-      emit(resource.name, 'list', err);
+      emit(resource.model, HandlerType.GET_ALL, err);
     }
   };
 }
@@ -92,11 +101,11 @@ export function getOne(resource: Resource): RouteHandler {
       }
 
       reply.send(data);
-      emit(resource.name, 'read', null, values.rows);
+      emit(resource.model, HandlerType.GET_ONE, null, values.rows);
     } catch (err) {
       log.error(err);
       reply.status(500).send({ error: `Failed to fetch ${resource.name}.` });
-      emit(resource.name, 'read', err);
+      emit(resource.model, HandlerType.GET_ONE, err);
     }
   };
 }
@@ -128,11 +137,11 @@ export function create(resource: Resource): RouteHandler {
       }
 
       reply.status(201).send(data);
-      emit(resource.name, 'create', null, data);
+      emit(resource.model, HandlerType.CREATE, null, data);
     } catch (err) {
       log.error(err);
       reply.status(500).send({ error: `Failed to create ${resource.name}.` });
-      emit(resource.name, 'create', err);
+      emit(resource.model, HandlerType.CREATE, err);
     }
   };
 }
@@ -170,11 +179,11 @@ export function update(resource: Resource): RouteHandler {
       }
 
       reply.send(data);
-      emit(resource.name, 'update', null, value.rows);
+      emit(resource.model, HandlerType.UPDATE, null, value.rows);
     } catch (err) {
       log.error(err);
       reply.status(500).send({ error: `Failed to update ${resource.name}.` });
-      emit(resource.name, 'update', err);
+      emit(resource.model, HandlerType.UPDATE, err);
     }
   };
 }
@@ -196,11 +205,11 @@ export function remove(resource: Resource): RouteHandler {
       reply
         .status(204)
         .send({ message: `${resource.name} deleted successfully.` });
-      emit(resource.name, 'remove', null, value.rows);
+      emit(resource.model, HandlerType.REMOVE, null, value.rows);
     } catch (err) {
       log.error(err);
       reply.status(500).send({ error: `Failed to delete ${resource.name}.` });
-      emit(resource.name, 'remove', err);
+      emit(resource.model, HandlerType.REMOVE, err);
     }
   };
 }
