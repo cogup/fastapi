@@ -43,9 +43,12 @@ import { MakeHandlers, getResourceName } from './decorators/handlers';
 import { MakeRouters } from './decorators/routes';
 import fs from 'fs';
 
-function getAppVersion(): string {
+export function getAppVersion(): string {
   try {
-    const packageJson = fs.readFileSync('./package.json', 'utf8');
+    const packageJson = fs.readFileSync(
+      `${process.cwd()}/package.json`,
+      'utf8'
+    );
     const packageObject = JSON.parse(packageJson);
 
     return packageObject.version;
