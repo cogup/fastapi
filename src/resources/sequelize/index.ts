@@ -33,7 +33,8 @@ export enum ResourceType {
   INT = 'int',
   FLOAT = 'float',
   CODE = 'code',
-  NUMERIC = 'numeric'
+  NUMERIC = 'numeric',
+  ARRAY = 'array'
 }
 
 export interface ResourceData {
@@ -351,6 +352,8 @@ function dataTypesResultToResourceType(data: DataTypesResult): ResourceType {
     return ResourceType.FLOAT;
   } else if (data instanceof DataTypes.NUMBER) {
     return ResourceType.NUMERIC;
+  } else if (data instanceof DataTypes.ARRAY) {
+    return ResourceType.ARRAY;
   }
 
   throw new Error(`Unknown column type: ${data}`);
