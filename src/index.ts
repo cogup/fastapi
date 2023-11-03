@@ -476,3 +476,9 @@ export {
   Remove,
   MakeHandlers
 } from './decorators/handlers';
+
+export const events = {
+  on,
+  emit,
+  remove
+};
