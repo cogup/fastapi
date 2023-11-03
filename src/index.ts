@@ -22,7 +22,16 @@ import {
   generateResourcesFromSequelizeModels
 } from './resources/sequelize';
 import healthRoute from './routes/health';
-import { on, emit, remove, EventCallback, EventKey } from './resources/events';
+import {
+  on,
+  emit,
+  remove,
+  EventCallback,
+  EventKey,
+  onAction,
+  emitAction,
+  removeAction
+} from './resources/events';
 import { AdminData, OpenAPI, Paths } from './resources/openapi/openapiTypes';
 import { Sequelize } from 'sequelize';
 import { promisify } from 'util';
@@ -414,17 +423,17 @@ export class FastAPI {
 
   // Events
   on<T>(modelName: EventKey, action: T, callback: EventCallback): FastAPI {
-    on(modelName, action, callback);
+    onAction(modelName, action, callback);
     return this;
   }
 
   emit<T>(modelName: EventKey, action: T, err: any, data: any): FastAPI {
-    emit(modelName, action, err, data);
+    emitAction(modelName, action, err, data);
     return this;
   }
 
   removeListener<T>(modelName: EventKey, action: T): FastAPI {
-    remove(modelName, action);
+    removeAction(modelName, action);
     return this;
   }
 
@@ -480,5 +489,8 @@ export {
 export const events = {
   on,
   emit,
-  remove
+  remove,
+  onAction,
+  emitAction,
+  removeAction
 };
