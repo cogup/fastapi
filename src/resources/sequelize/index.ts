@@ -406,6 +406,8 @@ function getSequelizeDataType(column: Column): DataTypesResult {
     return DataTypes.NUMBER(getNumberProps(attributes));
   } else if (ResourceType === 'CODE') {
     return DataTypes.STRING(attributes.maxLength, attributes.binary);
+  } else if (ResourceType === 'INTEGER[]') {
+    return DataTypes.ARRAY(DataTypes.INTEGER);
   }
 
   throw new Error(`Unknown column type: ${ResourceType}`);
