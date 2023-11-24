@@ -1,5 +1,5 @@
 // Import the Model type from the 'index' module.
-import { Model } from 'index';
+import { Model } from '../index';
 
 /**
  * Represents a callback function for events.
