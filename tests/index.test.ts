@@ -539,6 +539,11 @@ describe('FastAPI', () => {
       declare email: string;
     }
 
+    enum UserStatus {
+      ACTIVE = 'ACTIVE',
+      INACTIVE = 'INACTIVE'
+    }
+
     User.init(
       {
         id: {
@@ -551,6 +556,10 @@ describe('FastAPI', () => {
         },
         email: {
           type: DataTypes.STRING
+        },
+        status: {
+          type: DataTypes.ENUM(UserStatus.ACTIVE, UserStatus.INACTIVE),
+          defaultValue: UserStatus.ACTIVE
         }
       },
       {
@@ -619,7 +628,8 @@ describe('FastAPI', () => {
     expect(data.json()).toEqual({
       id: 1,
       name: 'User 1',
-      email: 'example@mail.com'
+      email: 'example@mail.com',
+      status: 'ACTIVE'
     });
 
     const data2 = await fastAPI.api.inject({

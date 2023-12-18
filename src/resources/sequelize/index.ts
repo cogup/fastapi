@@ -2,6 +2,8 @@ import { DataTypes, Model, Sequelize } from 'sequelize';
 import { convertToSingle } from '../openapi/utils';
 import { SchemaModelsBuilder, TableBuilder } from './builder';
 
+export type ResourceValues = string[] | undefined;
+
 export type DataTypesResult =
   | DataTypes.StringDataType
   | DataTypes.NumberDataType
@@ -121,6 +123,9 @@ export function generateResourcesFromSequelizeModels(
       const ResourceType = dataTypesResultToResourceType(
         attributes[columnName].type
       );
+      const ResourceValues = dataTypesResultToResourceValues(
+        attributes[columnName].type
+      );
       const primaryKey = attributes[columnName].primaryKey ?? false;
       const allowNull = attributes[columnName].allowNull ?? false;
       const defaultValue = attributes[columnName].defaultValue;
@@ -141,7 +146,8 @@ export function generateResourcesFromSequelizeModels(
         defaultValue,
         unique,
         ...attrs,
-        name: columnName
+        name: columnName,
+        values: ResourceValues
       };
 
       if (search === true) {
@@ -357,6 +363,17 @@ function dataTypesResultToResourceType(data: DataTypesResult): ResourceType {
   }
 
   throw new Error(`Unknown column type: ${data}`);
+}
+
+function dataTypesResultToResourceValues(
+  data: DataTypesResult
+): ResourceValues {
+  if (data instanceof DataTypes.ENUM) {
+    const dataEnum = data as any;
+    return dataEnum.values;
+  }
+
+  return undefined;
 }
 
 function getSequelizeDataType(column: Column): DataTypesResult {
