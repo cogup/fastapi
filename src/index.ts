@@ -37,17 +37,18 @@ import { Sequelize } from 'sequelize';
 import { promisify } from 'util';
 import { DocInfo, ServerObject } from './resources/openapi/doc';
 import builderOpenapi from './routes/openapi';
-import {
-  SchemaModelsBuilder,
-  TableBuilder
-} from './resources/sequelize/builder';
+import { SchemaModelsBuilder } from './resources/sequelize/builder';
 import {
   FastifyInstance,
   FastifyListenOptions,
   FastifyReply,
   FastifyRequest
 } from 'fastify';
-import { MakeHandlers, getResourceName } from './decorators/handlers';
+import {
+  MakeHandlers,
+  ResourceTypes,
+  getResourceName
+} from './decorators/handlers';
 import { MakeRouters } from './decorators/routes';
 import fs from 'fs';
 
@@ -361,7 +362,7 @@ export class FastAPI {
     this.afterLoadExecute();
   }
 
-  getResource(resourceName: string | TableBuilder): Resource {
+  getResource(resourceName: ResourceTypes): Resource {
     return this.resources[getResourceName(resourceName)];
   }
 

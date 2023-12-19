@@ -3,6 +3,7 @@ import {
   Create,
   FastAPI,
   Get,
+  GetOne,
   HandlerType,
   MakeHandlers,
   makeResponses,
@@ -1023,8 +1024,8 @@ describe('FastAPI', () => {
           this.message = 'Hello, Message!';
         }
 
-        @Create(messages)
-        messagesCreate(_request: FastifyRequest, reply: FastifyReply) {
+        @GetOne(messages)
+        getMessage(_request: FastifyRequest, reply: FastifyReply) {
           reply.status(201).send({
             message: this.message
           });
@@ -1053,8 +1054,8 @@ describe('FastAPI', () => {
       fastAPI.afterLoadExecute();
 
       const data = await fastAPI.api.inject({
-        method: 'POST',
-        url: '/api/messages',
+        method: 'GET',
+        url: '/api/messages/1',
         payload: {
           messageId: 1,
           protectedData: 'protected'
