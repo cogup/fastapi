@@ -1017,10 +1017,16 @@ describe('FastAPI', () => {
         .build();
 
       class MyHandler extends MakeHandlers {
+        message?: string;
+
+        onLoad(): void {
+          this.message = 'Hello, Message!';
+        }
+
         @Create(messages)
         messagesCreate(_request: FastifyRequest, reply: FastifyReply) {
           reply.status(201).send({
-            message: 'Hello, Message!'
+            message: this.message
           });
         }
 
@@ -1040,10 +1046,11 @@ describe('FastAPI', () => {
       fastAPI.setSchema(schema.build());
       fastAPI.setSequelize(sequelize);
 
-      fastAPI.addHandlers(new MyHandler());
+      fastAPI.addHandlers(MyHandler);
 
       fastAPI.loadSchema();
       fastAPI.loadRoutes();
+      fastAPI.afterLoadExecute();
 
       const data = await fastAPI.api.inject({
         method: 'POST',

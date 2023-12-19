@@ -76,7 +76,7 @@ export interface FastAPIOptions {
   routes?: RoutesType[];
   schema?: Schema | SequelizeResources[] | SchemaModelsBuilder;
   tags?: Tags;
-  handlers?: Handlers;
+  handlers?: HandlersType[];
   resources?: Resources;
   sequelize?: Sequelize;
   cors?: Cors;
@@ -103,6 +103,8 @@ export type RoutesType =
   | typeof MakeRouters
   | MakeRouters;
 
+export type HandlersType = Handlers | typeof MakeHandlers | MakeHandlers;
+
 export class FastAPI {
   info: DocInfo = {
     title: 'FastAPI',
@@ -123,6 +125,7 @@ export class FastAPI {
     delete: ['Deletes'],
     list: ['Lists']
   };
+  rawHandlers: HandlersType[] = [];
   handlers: Handlers = {};
   private schema?: Schema | SequelizeResources[] | SchemaModelsBuilder;
   resources: Resources = {};
@@ -143,10 +146,6 @@ export class FastAPI {
     if (props) {
       if (props.schema !== undefined) {
         this.schema = props.schema;
-      }
-
-      if (props.handlers !== undefined) {
-        this.handlers = props.handlers;
       }
 
       if (props.tags !== undefined) {
@@ -195,6 +194,10 @@ export class FastAPI {
       if (props.routes !== undefined) {
         this.rawRoutes = props.routes;
       }
+
+      if (props.handlers !== undefined) {
+        this.rawHandlers = props.handlers;
+      }
     }
 
     this.api = api();
@@ -223,6 +226,12 @@ export class FastAPI {
   private loadRawRoutes(): void {
     for (const route of this.rawRoutes) {
       this.addRoutes(route);
+    }
+  }
+
+  private loadRawHandlers(): void {
+    for (const handlers of this.rawHandlers) {
+      this.addHandlers(handlers);
     }
   }
 
@@ -371,7 +380,7 @@ export class FastAPI {
     }
   }
 
-  addHandlers(handlers: Handlers | typeof MakeHandlers): void {
+  addHandlers(handlers: HandlersType): void {
     if (handlers instanceof MakeHandlers) {
       this.handlers = { ...this.handlers, ...handlers.getHandlers() };
       this.afterLoad?.push(handlers);
