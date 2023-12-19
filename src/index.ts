@@ -477,6 +477,7 @@ export {
   SchemaModelsBuilder
 } from './resources/sequelize/builder';
 export { ResourceType } from './resources/sequelize';
+export { DataTypes } from 'sequelize';
 export {
   Sequelize,
   SequelizeModel as Model,
