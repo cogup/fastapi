@@ -24,46 +24,27 @@ FastAPI is a powerful library that simplifies the creation of RESTful APIs using
 ### Installation
 
 ```
-   npm i codephi/fastapi
+   npm i cogup/fastapi
 ```
 
 ### Basic Usage
 
-```javascript
-const { FastAPI } = require('fastapi');
+```typescript
+import { FastAPI } from '@cogup/fastapi';
+import { xAdminRoutes } from '@cogup/fastapi-x-admin';
 
-const fastapi = new FastAPI();
+async function main() {
+  const publicRoutes = new PublicRoutes();
 
-fastapi.get(
-  '/hello',
-  {
-    tags: ['hello'],
-    summary: 'Hello world',
-    description: 'Hello world',
-    responses: {
-      200: {
-        description: 'Successful operation',
-        content: {
-          'application/json': {
-            schema: {
-              type: 'object',
-              properties: {
-                message: {
-                  type: 'string'
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  },
-  async () => {
-    return { message: 'Hello world' };
-  }
-);
+  const fastAPI = new FastAPI({
+    routes: [xAdminRoutes],
+    sequelize
+  });
 
-fastapi.start();
+  await fastAPI.listen();
+}
+
+main();
 ```
 
 ## Contributing
