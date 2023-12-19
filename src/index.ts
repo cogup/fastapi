@@ -359,28 +359,30 @@ export class FastAPI {
 
   addRoutes(routes: RoutesType): void {
     if (routes instanceof RoutesBuilder || routes instanceof PathBuilder) {
-      routes = routes.build();
+      this.routes.push(routes.build());
     } else if (routes instanceof MakeRouters) {
-      routes = routes.getRoutes();
+      this.routes.push(routes.getRoutes());
+      this.afterLoad?.push(routes);
     } else if (typeof routes === 'function') {
       const builder = new routes();
-      routes = builder.getRoutes();
+      this.routes.push(builder.getRoutes());
       this.afterLoad?.push(builder);
+    } else {
+      this.routes.push(routes);
     }
-
-    this.routes.push(routes);
   }
 
   addHandlers(handlers: Handlers | typeof MakeHandlers): void {
     if (handlers instanceof MakeHandlers) {
-      handlers = handlers.getHandlers();
+      this.handlers = { ...this.handlers, ...handlers.getHandlers() };
+      this.afterLoad?.push(handlers);
     } else if (typeof handlers === 'function') {
       const builder = new handlers();
-      handlers = builder.getHandlers();
+      this.handlers = { ...this.handlers, ...builder.getHandlers() };
       this.afterLoad?.push(builder);
+    } else {
+      this.handlers = { ...this.handlers, ...handlers };
     }
-
-    this.handlers = { ...this.handlers, ...handlers };
   }
 
   path(path: string, options: Methods): FastAPI {
