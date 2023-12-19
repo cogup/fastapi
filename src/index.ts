@@ -87,6 +87,7 @@ export interface FastAPIOptions {
   servers?: ServerObject[];
   autoLoadSchema?: boolean;
   autoLoadRoutes?: boolean;
+  autoLoadHandlers?: boolean;
 }
 
 export interface Cors {
@@ -142,6 +143,7 @@ export class FastAPI {
   private afterLoad: MakeHandlers | MakeRouters[] = [];
   autoLoadSchema = true;
   autoLoadRoutes = true;
+  autoLoadHandlers = true;
 
   constructor(props?: FastAPIOptions) {
     if (props) {
@@ -192,6 +194,10 @@ export class FastAPI {
         this.autoLoadSchema = props.autoLoadRoutes;
       }
 
+      if (props.autoLoadHandlers !== undefined) {
+        this.autoLoadHandlers = props.autoLoadHandlers;
+      }
+
       if (props.routes !== undefined) {
         this.rawRoutes = props.routes;
       }
@@ -210,6 +216,10 @@ export class FastAPI {
       if (this.autoLoadRoutes) {
         this.loadRawRoutes();
         this.loadRoutes();
+      }
+
+      if (this.autoLoadHandlers) {
+        this.loadRawHandlers();
       }
     }
 
