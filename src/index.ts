@@ -191,7 +191,7 @@ export class FastAPI {
       }
 
       if (props.autoLoadRoutes !== undefined) {
-        this.autoLoadSchema = props.autoLoadRoutes;
+        this.autoLoadRoutes = props.autoLoadRoutes;
       }
 
       if (props.autoLoadHandlers !== undefined) {
@@ -213,14 +213,14 @@ export class FastAPI {
     if (this.autoLoadSchema && this.schema !== undefined) {
       this.loadSchema();
 
-      if (this.autoLoadRoutes) {
-        this.loadRawRoutes();
-        this.loadRoutes();
-      }
-
       if (this.autoLoadHandlers) {
         this.loadRawHandlers();
       }
+    }
+
+    if (this.autoLoadRoutes) {
+      this.loadRawRoutes();
+      this.loadRoutes();
     }
 
     return this;
@@ -357,6 +357,8 @@ export class FastAPI {
     ) {
       reply.send(error);
     });
+
+    this.afterLoadExecute();
   }
 
   afterLoadExecute() {
@@ -369,7 +371,6 @@ export class FastAPI {
 
   async listen() {
     await this.listenFn(this.listenConfig);
-    this.afterLoadExecute();
   }
 
   getResource(resourceName: ResourceTypes): Resource {
