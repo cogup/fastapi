@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1702986354476" clover="3.2.0">
-  <project timestamp="1702986354476" name="All files">
+<coverage generated="1702986545242" clover="3.2.0">
+  <project timestamp="1702986545242" name="All files">
     <metrics statements="1127" coveredstatements="839" conditionals="429" coveredconditionals="266" methods="220" coveredmethods="155" elements="1776" coveredelements="1260" complexity="0" loc="1127" ncloc="1127" packages="9" files="19" classes="19"/>
     <package name="src">
       <metrics statements="186" coveredstatements="159" conditionals="40" coveredconditionals="26" methods="49" coveredmethods="31"/>
-      <file name="index.ts" path="/home/assis/Projetos/cogup/fastapi/src/index.ts">
+      <file name="index.ts" path="/home/runner/work/fastapi/fastapi/src/index.ts">
         <metrics statements="186" coveredstatements="159" conditionals="40" coveredconditionals="26" methods="49" coveredmethods="31"/>
         <line num="1" count="1" type="stmt"/>
         <line num="2" count="1" type="stmt"/>
@@ -196,7 +196,7 @@
     </package>
     <package name="src.decorators">
       <metrics statements="64" coveredstatements="55" conditionals="9" coveredconditionals="7" methods="20" coveredmethods="12"/>
-      <file name="handlers.ts" path="/home/assis/Projetos/cogup/fastapi/src/decorators/handlers.ts">
+      <file name="handlers.ts" path="/home/runner/work/fastapi/fastapi/src/decorators/handlers.ts">
         <metrics statements="36" coveredstatements="30" conditionals="6" coveredconditionals="4" methods="11" coveredmethods="6"/>
         <line num="1" count="1" type="stmt"/>
         <line num="2" count="1" type="stmt"/>
@@ -235,7 +235,7 @@
         <line num="106" count="6" type="stmt"/>
         <line num="110" count="3" type="stmt"/>
       </file>
-      <file name="routes.ts" path="/home/assis/Projetos/cogup/fastapi/src/decorators/routes.ts">
+      <file name="routes.ts" path="/home/runner/work/fastapi/fastapi/src/decorators/routes.ts">
         <metrics statements="28" coveredstatements="25" conditionals="3" coveredconditionals="3" methods="9" coveredmethods="6"/>
         <line num="2" count="1" type="stmt"/>
         <line num="3" count="1" type="stmt"/>
@@ -269,14 +269,14 @@
     </package>
     <package name="src.dicts">
       <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
-      <file name="pt_BR.ts" path="/home/assis/Projetos/cogup/fastapi/src/dicts/pt_BR.ts">
+      <file name="pt_BR.ts" path="/home/runner/work/fastapi/fastapi/src/dicts/pt_BR.ts">
         <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
         <line num="1" count="1" type="stmt"/>
       </file>
     </package>
     <package name="src.middle">
       <metrics statements="5" coveredstatements="5" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
-      <file name="serve.ts" path="/home/assis/Projetos/cogup/fastapi/src/middle/serve.ts">
+      <file name="serve.ts" path="/home/runner/work/fastapi/fastapi/src/middle/serve.ts">
         <metrics statements="5" coveredstatements="5" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
         <line num="1" count="1" type="stmt"/>
         <line num="3" count="1" type="stmt"/>
@@ -287,7 +287,7 @@
     </package>
     <package name="src.resources">
       <metrics statements="42" coveredstatements="25" conditionals="8" coveredconditionals="4" methods="15" coveredmethods="4"/>
-      <file name="events.ts" path="/home/assis/Projetos/cogup/fastapi/src/resources/events.ts">
+      <file name="events.ts" path="/home/runner/work/fastapi/fastapi/src/resources/events.ts">
         <metrics statements="39" coveredstatements="22" conditionals="8" coveredconditionals="4" methods="15" coveredmethods="4"/>
         <line num="28" count="1" type="stmt"/>
         <line num="38" count="17" type="cond" truecount="2" falsecount="0"/>
@@ -329,7 +329,7 @@
         <line num="174" count="1" type="stmt"/>
         <line num="175" count="0" type="stmt"/>
       </file>
-      <file name="log.ts" path="/home/assis/Projetos/cogup/fastapi/src/resources/log.ts">
+      <file name="log.ts" path="/home/runner/work/fastapi/fastapi/src/resources/log.ts">
         <metrics statements="3" coveredstatements="3" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
         <line num="1" count="1" type="stmt"/>
         <line num="3" count="1" type="stmt"/>
@@ -338,7 +338,7 @@
     </package>
     <package name="src.resources.openapi">
       <metrics statements="191" coveredstatements="165" conditionals="75" coveredconditionals="49" methods="29" coveredmethods="28"/>
-      <file name="dataTypes.ts" path="/home/assis/Projetos/cogup/fastapi/src/resources/openapi/dataTypes.ts">
+      <file name="dataTypes.ts" path="/home/runner/work/fastapi/fastapi/src/resources/openapi/dataTypes.ts">
         <metrics statements="17" coveredstatements="5" conditionals="8" coveredconditionals="0" methods="1" coveredmethods="1"/>
         <line num="8" count="1" type="stmt"/>
         <line num="106" count="1" type="stmt"/>
@@ -358,7 +358,7 @@
         <line num="132" count="0" type="stmt"/>
         <line num="135" count="45" type="stmt"/>
       </file>
-      <file name="doc.ts" path="/home/assis/Projetos/cogup/fastapi/src/resources/openapi/doc.ts">
+      <file name="doc.ts" path="/home/runner/work/fastapi/fastapi/src/resources/openapi/doc.ts">
         <metrics statements="8" coveredstatements="8" conditionals="2" coveredconditionals="2" methods="3" coveredmethods="3"/>
         <line num="1" count="1" type="stmt"/>
         <line num="31" count="1" type="stmt"/>
@@ -369,7 +369,7 @@
         <line num="45" count="55" type="stmt"/>
         <line num="52" count="13" type="stmt"/>
       </file>
-      <file name="index.ts" path="/home/assis/Projetos/cogup/fastapi/src/resources/openapi/index.ts">
+      <file name="index.ts" path="/home/runner/work/fastapi/fastapi/src/resources/openapi/index.ts">
         <metrics statements="93" coveredstatements="84" conditionals="32" coveredconditionals="18" methods="14" coveredmethods="14"/>
         <line num="2" count="1" type="stmt"/>
         <line num="4" count="1" type="stmt"/>
@@ -465,7 +465,7 @@
         <line num="250" count="11" type="stmt"/>
         <line num="272" count="12" type="stmt"/>
       </file>
-      <file name="responses.ts" path="/home/assis/Projetos/cogup/fastapi/src/resources/openapi/responses.ts">
+      <file name="responses.ts" path="/home/runner/work/fastapi/fastapi/src/resources/openapi/responses.ts">
         <metrics statements="16" coveredstatements="15" conditionals="3" coveredconditionals="2" methods="4" coveredmethods="4"/>
         <line num="3" count="1" type="stmt"/>
         <line num="4" count="407" type="stmt"/>
@@ -484,7 +484,7 @@
         <line num="69" count="79" type="stmt"/>
         <line num="72" count="1" type="stmt"/>
       </file>
-      <file name="utils.ts" path="/home/assis/Projetos/cogup/fastapi/src/resources/openapi/utils.ts">
+      <file name="utils.ts" path="/home/runner/work/fastapi/fastapi/src/resources/openapi/utils.ts">
         <metrics statements="57" coveredstatements="53" conditionals="30" coveredconditionals="27" methods="7" coveredmethods="6"/>
         <line num="5" count="1" type="stmt"/>
         <line num="9" count="268" type="cond" truecount="2" falsecount="0"/>
@@ -547,7 +547,7 @@
     </package>
     <package name="src.resources.routes">
       <metrics statements="317" coveredstatements="216" conditionals="125" coveredconditionals="78" methods="60" coveredmethods="49"/>
-      <file name="index.ts" path="/home/assis/Projetos/cogup/fastapi/src/resources/routes/index.ts">
+      <file name="index.ts" path="/home/runner/work/fastapi/fastapi/src/resources/routes/index.ts">
         <metrics statements="165" coveredstatements="134" conditionals="89" coveredconditionals="62" methods="40" coveredmethods="33"/>
         <line num="1" count="1" type="stmt"/>
         <line num="17" count="1" type="stmt"/>
@@ -715,7 +715,7 @@
         <line num="485" count="106" type="stmt"/>
         <line num="486" count="106" type="stmt"/>
       </file>
-      <file name="routes.ts" path="/home/assis/Projetos/cogup/fastapi/src/resources/routes/routes.ts">
+      <file name="routes.ts" path="/home/runner/work/fastapi/fastapi/src/resources/routes/routes.ts">
         <metrics statements="102" coveredstatements="46" conditionals="27" coveredconditionals="13" methods="11" coveredmethods="8"/>
         <line num="1" count="1" type="stmt"/>
         <line num="2" count="1" type="stmt"/>
@@ -820,7 +820,7 @@
         <line num="211" count="0" type="stmt"/>
         <line num="212" count="0" type="stmt"/>
       </file>
-      <file name="superFilter.ts" path="/home/assis/Projetos/cogup/fastapi/src/resources/routes/superFilter.ts">
+      <file name="superFilter.ts" path="/home/runner/work/fastapi/fastapi/src/resources/routes/superFilter.ts">
         <metrics statements="50" coveredstatements="36" conditionals="9" coveredconditionals="3" methods="9" coveredmethods="8"/>
         <line num="1" count="1" type="stmt"/>
         <line num="2" count="1" type="stmt"/>
@@ -876,7 +876,7 @@
     </package>
     <package name="src.resources.sequelize">
       <metrics statements="224" coveredstatements="163" conditionals="127" coveredconditionals="75" methods="29" coveredmethods="23"/>
-      <file name="builder.ts" path="/home/assis/Projetos/cogup/fastapi/src/resources/sequelize/builder.ts">
+      <file name="builder.ts" path="/home/runner/work/fastapi/fastapi/src/resources/sequelize/builder.ts">
         <metrics statements="44" coveredstatements="39" conditionals="18" coveredconditionals="15" methods="14" coveredmethods="12"/>
         <line num="1" count="1" type="stmt"/>
         <line num="17" count="1" type="stmt"/>
@@ -923,7 +923,7 @@
         <line num="144" count="5" type="stmt"/>
         <line num="151" count="6" type="stmt"/>
       </file>
-      <file name="index.ts" path="/home/assis/Projetos/cogup/fastapi/src/resources/sequelize/index.ts">
+      <file name="index.ts" path="/home/runner/work/fastapi/fastapi/src/resources/sequelize/index.ts">
         <metrics statements="180" coveredstatements="124" conditionals="109" coveredconditionals="60" methods="15" coveredmethods="11"/>
         <line num="1" count="1" type="stmt"/>
         <line num="2" count="1" type="stmt"/>
@@ -1109,7 +1109,7 @@
     </package>
     <package name="src.routes">
       <metrics statements="97" coveredstatements="50" conditionals="45" coveredconditionals="27" methods="17" coveredmethods="7"/>
-      <file name="health.ts" path="/home/assis/Projetos/cogup/fastapi/src/routes/health.ts">
+      <file name="health.ts" path="/home/runner/work/fastapi/fastapi/src/routes/health.ts">
         <metrics statements="42" coveredstatements="8" conditionals="0" coveredconditionals="0" methods="10" coveredmethods="2"/>
         <line num="1" count="1" type="stmt"/>
         <line num="2" count="1" type="stmt"/>
@@ -1154,7 +1154,7 @@
         <line num="244" count="0" type="stmt"/>
         <line num="246" count="0" type="stmt"/>
       </file>
-      <file name="openapi.ts" path="/home/assis/Projetos/cogup/fastapi/src/routes/openapi.ts">
+      <file name="openapi.ts" path="/home/runner/work/fastapi/fastapi/src/routes/openapi.ts">
         <metrics statements="55" coveredstatements="42" conditionals="45" coveredconditionals="27" methods="7" coveredmethods="5"/>
         <line num="2" count="1" type="stmt"/>
         <line num="4" count="1" type="stmt"/>
