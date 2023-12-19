@@ -35,7 +35,6 @@ import {
 import { AdminData, OpenAPI, Paths } from './resources/openapi/openapiTypes';
 import { Sequelize } from 'sequelize';
 import { promisify } from 'util';
-import log from './resources/log';
 import { DocInfo, ServerObject } from './resources/openapi/doc';
 import builderOpenapi from './routes/openapi';
 import {
@@ -461,7 +460,6 @@ export {
   Sequelize,
   SequelizeModel as Model,
   Tags,
-  log,
   HandlerMethods,
   HandlerMethodType,
   Handlers

@@ -1,7 +1,6 @@
 import { superFilter } from './superFilter';
 import { emitAction } from '../events';
 import { Resource } from '../sequelize';
-import log from '../log';
 import { Reply, Request } from '../../index';
 import { Op } from 'sequelize';
 const { like, iLike } = Op;
@@ -75,7 +74,7 @@ export function getAll(resource: Resource): RouteHandler {
 
       emitAction(resource.model, HandlerType.GET_ALL, null, data.rows);
     } catch (err) {
-      log.error(err);
+      reply.log.error(err);
       reply.status(500).send({ error: `Failed to fetch ${resource.name}.` });
       emitAction(resource.model, HandlerType.GET_ALL, err);
     }
@@ -103,7 +102,7 @@ export function getOne(resource: Resource): RouteHandler {
       reply.send(data);
       emitAction(resource.model, HandlerType.GET_ONE, null, values.rows);
     } catch (err) {
-      log.error(err);
+      reply.log.error(err);
       reply.status(500).send({ error: `Failed to fetch ${resource.name}.` });
       emitAction(resource.model, HandlerType.GET_ONE, err);
     }
@@ -139,7 +138,7 @@ export function create(resource: Resource): RouteHandler {
       reply.status(201).send(data);
       emitAction(resource.model, HandlerType.CREATE, null, data);
     } catch (err) {
-      log.error(err);
+      reply.log.error(err);
       reply.status(500).send({ error: `Failed to create ${resource.name}.` });
       emitAction(resource.model, HandlerType.CREATE, err);
     }
@@ -181,7 +180,7 @@ export function update(resource: Resource): RouteHandler {
       reply.send(data);
       emitAction(resource.model, HandlerType.UPDATE, null, value.rows);
     } catch (err) {
-      log.error(err);
+      reply.log.error(err);
       reply.status(500).send({ error: `Failed to update ${resource.name}.` });
       emitAction(resource.model, HandlerType.UPDATE, err);
     }
@@ -207,7 +206,7 @@ export function remove(resource: Resource): RouteHandler {
         .send({ message: `${resource.name} deleted successfully.` });
       emitAction(resource.model, HandlerType.REMOVE, null, value.rows);
     } catch (err) {
-      log.error(err);
+      reply.log.error(err);
       reply.status(500).send({ error: `Failed to delete ${resource.name}.` });
       emitAction(resource.model, HandlerType.REMOVE, err);
     }

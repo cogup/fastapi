@@ -1,6 +1,6 @@
 {
   "name": "@cogup/fastapi",
-  "version": "0.5.11",
+  "version": "0.5.12",
   "description": "FastAPI is a powerful library that simplifies the creation of RESTful APIs using Fastify and Sequelize. It allows you to define your database tables and API routes in a JSON file, making the development process faster and more efficient.",
   "main": "dist/src/index.js",
   "scripts": {
@@ -15,7 +15,6 @@
     "@fastify/cors": "^8.4.1",
     "fastify": "4.17.0",
     "json-schema": "^0.4.0",
-    "pino": "^8.16.1",
     "reflect-metadata": "^0.1.13",
     "sequelize": "^6.33.0"
   },
@@ -23,7 +22,6 @@
     "@types/jest": "^29.5.7",
     "@types/json-schema": "^7.0.14",
     "@types/node": "^20.8.10",
-    "@types/pino": "^7.0.5",
     "@typescript-eslint/eslint-plugin": "^6.9.1",
     "eslint": "^8.52.0",
     "eslint-config-prettier": "^8.10.0",
