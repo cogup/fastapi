@@ -72,7 +72,7 @@ export function getAll(resource: Resource): RouteHandler {
         }
       });
 
-      emitAction(resource.model, HandlerType.GET_ALL, null, data.rows);
+      emitAction(resource.model, HandlerType.GET_ALL, null, data);
     } catch (err) {
       reply.log.error(err);
       reply.status(500).send({ error: `Failed to fetch ${resource.name}.` });
@@ -92,15 +92,14 @@ export function getOne(resource: Resource): RouteHandler {
       const data = await resource.model.findByPk(params.id, {
         attributes: { exclude: resource.noPropagateColumns }
       });
-      const values = data?.dataValues;
 
-      if (!values) {
+      if (!data?.dataValues) {
         reply.status(404).send({ error: `${resource.name} not found.` });
         return;
       }
 
       reply.send(data);
-      emitAction(resource.model, HandlerType.GET_ONE, null, values.rows);
+      emitAction(resource.model, HandlerType.GET_ONE, null, data);
     } catch (err) {
       reply.log.error(err);
       reply.status(500).send({ error: `Failed to fetch ${resource.name}.` });
@@ -162,9 +161,8 @@ export function update(resource: Resource): RouteHandler {
       const params = request.params as GetOneUpdateRemoveParams;
 
       const data = await resource.model.findByPk(params.id);
-      const value = data?.dataValues;
 
-      if (!value) {
+      if (!data?.dataValues) {
         reply.status(404).send({ error: `${resource.name} not found.` });
         return;
       }
@@ -178,7 +176,7 @@ export function update(resource: Resource): RouteHandler {
       }
 
       reply.send(data);
-      emitAction(resource.model, HandlerType.UPDATE, null, value.rows);
+      emitAction(resource.model, HandlerType.UPDATE, null, data);
     } catch (err) {
       reply.log.error(err);
       reply.status(500).send({ error: `Failed to update ${resource.name}.` });
@@ -192,7 +190,6 @@ export function remove(resource: Resource): RouteHandler {
     try {
       const params = request.params as GetOneUpdateRemoveParams;
       const data = await resource.model.findByPk(params.id);
-      const value = data?.dataValues;
 
       if (!data) {
         reply.status(404).send({ error: `${resource.name} not found.` });
@@ -204,7 +201,7 @@ export function remove(resource: Resource): RouteHandler {
       reply
         .status(204)
         .send({ message: `${resource.name} deleted successfully.` });
-      emitAction(resource.model, HandlerType.REMOVE, null, value.rows);
+      emitAction(resource.model, HandlerType.REMOVE, null, data);
     } catch (err) {
       reply.log.error(err);
       reply.status(500).send({ error: `Failed to delete ${resource.name}.` });
