@@ -46,11 +46,12 @@ import {
 } from 'fastify';
 import {
   MakeHandlers,
-  ResourceTypes,
+  HandlerResourceTypes,
   getResourceName
 } from './decorators/handlers';
 import { MakeRouters } from './decorators/routes';
 import fs from 'fs';
+import { MakeEvents } from './decorators/events';
 
 export function getAppVersion(): string {
   try {
@@ -78,6 +79,7 @@ export interface FastAPIOptions {
   schema?: Schema | SequelizeResources[] | SchemaModelsBuilder;
   tags?: Tags;
   handlers?: HandlersType[];
+  events?: EventsType[];
   resources?: Resources;
   sequelize?: Sequelize;
   cors?: Cors;
@@ -88,6 +90,7 @@ export interface FastAPIOptions {
   autoLoadSchema?: boolean;
   autoLoadRoutes?: boolean;
   autoLoadHandlers?: boolean;
+  autoLoadEvents?: boolean;
 }
 
 export interface Cors {
@@ -106,6 +109,7 @@ export type RoutesType =
   | MakeRouters;
 
 export type HandlersType = Handlers | typeof MakeHandlers | MakeHandlers;
+export type EventsType = typeof MakeEvents | MakeEvents;
 
 export class FastAPI {
   info: DocInfo = {
@@ -118,7 +122,7 @@ export class FastAPI {
     port: 3000,
     host: '0.0.0.0'
   };
-  rawRoutes: RoutesType[] = [];
+  private rawRoutes: RoutesType[] = [];
   routes: Routes[] = [];
   tags: Tags = {
     create: ['Creates'],
@@ -127,7 +131,8 @@ export class FastAPI {
     delete: ['Deletes'],
     list: ['Lists']
   };
-  rawHandlers: HandlersType[] = [];
+  private rawHandlers: HandlersType[] = [];
+  private rawEvents: EventsType[] = [];
   handlers: Handlers = {};
   private schema?: Schema | SequelizeResources[] | SchemaModelsBuilder;
   resources: Resources = {};
@@ -140,10 +145,11 @@ export class FastAPI {
   private listenFn: (options: FastifyListenOptions) => Promise<void>;
   sequelize?: Sequelize;
   openAPISpec?: OpenAPI;
-  private afterLoad: MakeHandlers | MakeRouters[] = [];
+  private afterLoad: MakeHandlers | MakeRouters | MakeEvents[] = [];
   autoLoadSchema = true;
   autoLoadRoutes = true;
   autoLoadHandlers = true;
+  autoLoadEvents = true;
 
   constructor(props?: FastAPIOptions) {
     if (props) {
@@ -198,12 +204,20 @@ export class FastAPI {
         this.autoLoadHandlers = props.autoLoadHandlers;
       }
 
+      if (props.autoLoadEvents !== undefined) {
+        this.autoLoadEvents = props.autoLoadEvents;
+      }
+
       if (props.routes !== undefined) {
         this.rawRoutes = props.routes;
       }
 
       if (props.handlers !== undefined) {
         this.rawHandlers = props.handlers;
+      }
+
+      if (props.events !== undefined) {
+        this.rawEvents = props.events;
       }
     }
 
@@ -216,6 +230,10 @@ export class FastAPI {
       if (this.autoLoadHandlers) {
         this.loadRawHandlers();
       }
+    }
+
+    if (this.autoLoadEvents) {
+      this.loadRawEvents();
     }
 
     if (this.autoLoadRoutes) {
@@ -243,6 +261,12 @@ export class FastAPI {
   private loadRawHandlers(): void {
     for (const handlers of this.rawHandlers) {
       this.addHandlers(handlers);
+    }
+  }
+
+  private loadRawEvents(): void {
+    for (const events of this.rawEvents) {
+      this.addEvents(events);
     }
   }
 
@@ -365,6 +389,10 @@ export class FastAPI {
     if (this.afterLoad) {
       this.afterLoad.forEach((builder: MakeHandlers | MakeRouters) => {
         builder.onLoad(this);
+
+        if (builder instanceof MakeEvents) {
+          builder.loadEvents();
+        }
       });
     }
   }
@@ -373,7 +401,7 @@ export class FastAPI {
     await this.listenFn(this.listenConfig);
   }
 
-  getResource(resourceName: ResourceTypes): Resource {
+  getResource(resourceName: HandlerResourceTypes): Resource {
     return this.resources[getResourceName(resourceName)];
   }
 
@@ -402,6 +430,15 @@ export class FastAPI {
       this.afterLoad?.push(builder);
     } else {
       this.handlers = { ...this.handlers, ...handlers };
+    }
+  }
+
+  addEvents(events: EventsType): void {
+    if (events instanceof MakeEvents) {
+      this.afterLoad?.push(events);
+    } else if (typeof events === 'function') {
+      const builder = new events();
+      this.afterLoad?.push(builder);
     }
   }
 
@@ -507,6 +544,15 @@ export {
   Remove,
   MakeHandlers
 } from './decorators/handlers';
+export {
+  OnCreate,
+  OnGetAll,
+  OnGetOne,
+  OnUpdate,
+  OnRemove,
+  OnEvent,
+  MakeEvents
+} from './decorators/events';
 
 export const events = {
   on,

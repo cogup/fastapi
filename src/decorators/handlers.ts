@@ -11,7 +11,7 @@ interface HandlerItem {
 }
 
 function innerHandlerDecorator(
-  handler: ResourceTypes,
+  handler: HandlerResourceTypes,
   HandlerMethodType: HandlerMethodType
 ) {
   return function (target: any, key: string, descriptor: PropertyDescriptor) {
@@ -29,9 +29,12 @@ function innerHandlerDecorator(
   };
 }
 
-export type ResourceTypes = string | TableBuilder | typeof SequelizeModel;
+export type HandlerResourceTypes =
+  | string
+  | TableBuilder
+  | typeof SequelizeModel;
 
-export function getResourceName(resourceName: ResourceTypes) {
+export function getResourceName(resourceName: HandlerResourceTypes) {
   if (typeof resourceName === 'string') {
     return resourceName;
   }
@@ -43,23 +46,23 @@ export function getResourceName(resourceName: ResourceTypes) {
   return resourceName.name;
 }
 
-export function Create(handler: ResourceTypes) {
+export function Create(handler: HandlerResourceTypes) {
   return innerHandlerDecorator(handler, HandlerMethodType.CREATE);
 }
 
-export function GetAll(handler: ResourceTypes) {
+export function GetAll(handler: HandlerResourceTypes) {
   return innerHandlerDecorator(handler, HandlerMethodType.GET_ALL);
 }
 
-export function GetOne(handler: ResourceTypes) {
+export function GetOne(handler: HandlerResourceTypes) {
   return innerHandlerDecorator(handler, HandlerMethodType.GET_ONE);
 }
 
-export function Update(handler: ResourceTypes) {
+export function Update(handler: HandlerResourceTypes) {
   return innerHandlerDecorator(handler, HandlerMethodType.UPDATE);
 }
 
-export function Remove(handler: ResourceTypes) {
+export function Remove(handler: HandlerResourceTypes) {
   return innerHandlerDecorator(handler, HandlerMethodType.REMOVE);
 }
 
