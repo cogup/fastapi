@@ -2,7 +2,7 @@ import { DataTypes, Model, Sequelize } from 'sequelize';
 import { convertToSingle } from '../openapi/utils';
 import { SchemaModelsBuilder, TableBuilder } from './builder';
 
-export type ResourceValues = string[] | undefined;
+export type ResourceValues = string[] | undefined | number;
 
 export type DataTypesResult =
   | DataTypes.StringDataType
@@ -120,12 +120,8 @@ export function generateResourcesFromSequelizeModels(
     const attributes = model.getAttributes();
 
     for (const columnName of Object.keys(attributes)) {
-      const ResourceType = dataTypesResultToResourceType(
-        attributes[columnName].type
-      );
-      const ResourceValues = dataTypesResultToResourceValues(
-        attributes[columnName].type
-      );
+      const attrType = attributes[columnName].type;
+      const ResourceType = dataTypesResultToResourceType(attrType);
       const primaryKey = attributes[columnName].primaryKey ?? false;
       const allowNull = attributes[columnName].allowNull ?? false;
       const defaultValue = attributes[columnName].defaultValue;
@@ -146,9 +142,17 @@ export function generateResourcesFromSequelizeModels(
         defaultValue,
         unique,
         ...attrs,
-        name: columnName,
-        values: ResourceValues
+        name: columnName
       };
+
+      const ResourceValues = dataTypesResultToResourceValues(attrType);
+      if (ResourceValues !== undefined) {
+        if (attrType instanceof DataTypes.ENUM) {
+          resource.columns[columnName].values = ResourceValues as string[];
+        } else if (attrType instanceof DataTypes.STRING) {
+          resource.columns[columnName].maxLength = ResourceValues as number;
+        }
+      }
 
       if (search === true) {
         if (resource.search === undefined) {
@@ -371,6 +375,9 @@ function dataTypesResultToResourceValues(
   if (data instanceof DataTypes.ENUM) {
     const dataEnum = data as any;
     return dataEnum.values;
+  } else if (data instanceof DataTypes.STRING) {
+    const dataString = data as any;
+    return dataString.options?.length;
   }
 
   return undefined;
