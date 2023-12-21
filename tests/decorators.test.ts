@@ -79,9 +79,7 @@ describe('Decorators', () => {
     const fastAPI = new FastAPI({
       sequelize,
       schema,
-      events: [MessageTest],
-      handlers: [MessageTest],
-      routes: [MessageTest]
+      builders: [MessageTest]
     });
 
     await fastAPI.sequelize?.sync();

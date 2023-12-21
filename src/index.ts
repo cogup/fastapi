@@ -86,6 +86,7 @@ export interface FastAPIOptions {
   autoLoadRoutes?: boolean;
   autoLoadHandlers?: boolean;
   autoLoadEvents?: boolean;
+  builders?: BuilderType[];
 }
 
 export interface Cors {
@@ -105,6 +106,7 @@ export type RoutesType =
 
 export type HandlersType = Handlers | typeof Builder | Builder;
 export type EventsType = typeof Builder | Builder;
+export type BuilderType = typeof Builder | Builder;
 
 export class FastAPI {
   info: DocInfo = {
@@ -214,6 +216,12 @@ export class FastAPI {
       if (props.events !== undefined) {
         this.rawEvents = props.events;
       }
+    }
+
+    if (props?.builders !== undefined) {
+      this.rawEvents = props.builders;
+      this.rawHandlers = props.builders;
+      this.rawRoutes = props.builders;
     }
 
     this.api = api();
