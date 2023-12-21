@@ -37,7 +37,7 @@ function resolveEventName<T>(model: EventKey, action: T): string {
   const name =
     typeof model === 'string' ? model : `model_${(model as typeof Model).name}`;
 
-  return `${name}.${action}`;
+  return `action.${name}.${action}`;
 }
 
 /**
@@ -100,12 +100,14 @@ export function removeAction<T>(model: EventKey, action: T): void {
  * @param event - The name of the general event.
  * @param callback - The callback function to register.
  */
-export function on(event: string, callback: EventCallback): void {
-  if (!eventsStorage[event]) {
-    eventsStorage[event] = [];
+export function on<T>(event: T, callback: EventCallback): void {
+  const eventKey = `event.${event}`;
+
+  if (!eventsStorage[eventKey]) {
+    eventsStorage[eventKey] = [];
   }
 
-  eventsStorage[event].push(callback);
+  eventsStorage[eventKey].push(callback);
 }
 
 /**
@@ -115,8 +117,10 @@ export function on(event: string, callback: EventCallback): void {
  * @param data - The data to pass to the callbacks.
  */
 export function emit(event: string, err: any, data?: any): void {
-  if (eventsStorage[event]) {
-    eventsStorage[event].forEach((callback) => {
+  const eventKey = `event.${event}`;
+
+  if (eventsStorage[eventKey]) {
+    eventsStorage[eventKey].forEach((callback) => {
       callback(err, data);
     });
   }
