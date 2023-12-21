@@ -11,6 +11,26 @@ export interface RouteItem {
   methodType: MethodType;
 }
 
+export function Get(route: string | Route) {
+  return innerRoutesDecorator(route, MethodType.GET);
+}
+
+export function Post(route: string | Route) {
+  return innerRoutesDecorator(route, MethodType.POST);
+}
+
+export function Put(route: string | Route) {
+  return innerRoutesDecorator(route, MethodType.PUT);
+}
+
+export function Delete(route: string | Route) {
+  return innerRoutesDecorator(route, MethodType.DELETE);
+}
+
+export function Patch(route: string | Route) {
+  return innerRoutesDecorator(route, MethodType.PATCH);
+}
+
 function innerRoutesDecorator(route: string | Route, methodType: MethodType) {
   if (typeof route === 'string') {
     route = {
@@ -30,24 +50,4 @@ function innerRoutesDecorator(route: string | Route, methodType: MethodType) {
 
     return descriptor;
   };
-}
-
-export function Get(route: string | Route) {
-  return innerRoutesDecorator(route, MethodType.GET);
-}
-
-export function Post(route: string | Route) {
-  return innerRoutesDecorator(route, MethodType.POST);
-}
-
-export function Put(route: string | Route) {
-  return innerRoutesDecorator(route, MethodType.PUT);
-}
-
-export function Delete(route: string | Route) {
-  return innerRoutesDecorator(route, MethodType.DELETE);
-}
-
-export function Patch(route: string | Route) {
-  return innerRoutesDecorator(route, MethodType.PATCH);
 }

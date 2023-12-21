@@ -9,25 +9,6 @@ export interface HandlerItem {
   HandlerMethodType: HandlerMethodType;
 }
 
-function innerHandlerDecorator(
-  handler: HandlerResourceTypes,
-  HandlerMethodType: HandlerMethodType
-) {
-  return function (target: any, key: string, descriptor: PropertyDescriptor) {
-    Reflect.defineMetadata(
-      'handler',
-      {
-        resourceName: getResourceName(handler),
-        HandlerMethodType
-      },
-      target,
-      key
-    );
-
-    return descriptor;
-  };
-}
-
 export type HandlerResourceTypes =
   | string
   | TableBuilder
@@ -79,4 +60,23 @@ export function getPathByMethod(
   }
 
   return paths.single;
+}
+
+function innerHandlerDecorator(
+  handler: HandlerResourceTypes,
+  HandlerMethodType: HandlerMethodType
+) {
+  return function (target: any, key: string, descriptor: PropertyDescriptor) {
+    Reflect.defineMetadata(
+      'handler',
+      {
+        resourceName: getResourceName(handler),
+        HandlerMethodType
+      },
+      target,
+      key
+    );
+
+    return descriptor;
+  };
 }

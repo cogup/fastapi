@@ -1,8 +1,8 @@
 import 'reflect-metadata';
 import { FastAPI, Handlers } from '..';
-import { onAction } from '../resources/events';
+import { on, onAction } from '../resources/events';
 import { HandlerItem, getPathByMethod } from './handlers';
-import { CustomEventItem } from './events';
+import { CustomActionItem, CustomEventItem } from './events';
 import { RouteItem } from './routes';
 import { Routes } from 'resources/routes';
 
@@ -23,6 +23,16 @@ export class Builder {
     );
 
     for (const methodName of controllerMethods) {
+      const actions = Reflect.getMetadata(
+        'actions',
+        this,
+        methodName
+      ) as CustomActionItem;
+
+      if (actions) {
+        onAction(actions.model, actions.action, this[methodName].bind(this));
+      }
+
       const events = Reflect.getMetadata(
         'events',
         this,
@@ -30,7 +40,7 @@ export class Builder {
       ) as CustomEventItem;
 
       if (events) {
-        onAction(events.model, events.action, this[methodName].bind(this));
+        on(events.eventKey, this[methodName].bind(this));
       }
     }
   }
