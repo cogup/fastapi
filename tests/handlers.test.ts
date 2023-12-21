@@ -1,9 +1,11 @@
-import { Create, FastAPI, Reply, Builder } from '../src';
+import { Create, FastAPI, Reply, builder } from '../src';
 import { sequelize, schema, Message } from './utils/message';
 
 describe('MakeHandlers', () => {
   it('Test OnLoad MakeHandlers', async () => {
-    class MessageHandlers extends Builder {
+    @builder
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    class MessageHandlers {
       message?: string;
 
       onLoad(): void {
@@ -20,8 +22,7 @@ describe('MakeHandlers', () => {
 
     const fastAPI = new FastAPI({
       sequelize,
-      schema,
-      handlers: [MessageHandlers]
+      schema
     });
 
     const data = await fastAPI.api.inject({

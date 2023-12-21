@@ -47,6 +47,7 @@ import {
 import { HandlerResourceTypes, getResourceName } from './decorators/handlers';
 import fs from 'fs';
 import { Builder } from './decorators/builder';
+import { IBuilderClass, loadBuilderClasses } from './decorators/inject';
 
 export function getAppVersion(): string {
   try {
@@ -105,8 +106,8 @@ export type RoutesType =
   | Builder;
 
 export type HandlersType = Handlers | typeof Builder | Builder;
-export type EventsType = typeof Builder | Builder;
-export type BuilderType = typeof Builder | Builder;
+export type EventsType = typeof Builder | Builder | IBuilderClass;
+export type BuilderType = typeof Builder | Builder | IBuilderClass;
 
 export class FastAPI {
   info: DocInfo = {
@@ -218,14 +219,14 @@ export class FastAPI {
       }
     }
 
-    if (props?.builders !== undefined) {
-      this.rawEvents = props.builders;
-      this.rawHandlers = props.builders;
-      this.rawRoutes = props.builders;
-    }
-
     this.api = api();
     this.listenFn = promisify(this.api.listen.bind(this.api));
+
+    const builderClasses = loadBuilderClasses();
+
+    this.rawEvents = builderClasses;
+    this.rawHandlers = builderClasses;
+    this.rawRoutes = builderClasses;
 
     if (this.autoLoadSchema && this.schema !== undefined) {
       this.loadSchema();
@@ -548,3 +549,5 @@ export const events = {
   emitAction,
   removeAction
 };
+
+export { builder } from './decorators/inject';
