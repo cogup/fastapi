@@ -44,14 +44,9 @@ import {
   FastifyReply,
   FastifyRequest
 } from 'fastify';
-import {
-  MakeHandlers,
-  HandlerResourceTypes,
-  getResourceName
-} from './decorators/handlers';
-import { MakeRouters } from './decorators/routes';
+import { HandlerResourceTypes, getResourceName } from './decorators/handlers';
 import fs from 'fs';
-import { MakeEvents } from './decorators/events';
+import { Builder } from './decorators/builder';
 
 export function getAppVersion(): string {
   try {
@@ -105,11 +100,11 @@ export type RoutesType =
   | Routes
   | RoutesBuilder
   | PathBuilder
-  | typeof MakeRouters
-  | MakeRouters;
+  | typeof Builder
+  | Builder;
 
-export type HandlersType = Handlers | typeof MakeHandlers | MakeHandlers;
-export type EventsType = typeof MakeEvents | MakeEvents;
+export type HandlersType = Handlers | typeof Builder | Builder;
+export type EventsType = typeof Builder | Builder;
 
 export class FastAPI {
   info: DocInfo = {
@@ -145,7 +140,7 @@ export class FastAPI {
   private listenFn: (options: FastifyListenOptions) => Promise<void>;
   sequelize?: Sequelize;
   openAPISpec?: OpenAPI;
-  private afterLoad: MakeHandlers | MakeRouters | MakeEvents[] = [];
+  private afterLoad: Builder[] = [];
   autoLoadSchema = true;
   autoLoadRoutes = true;
   autoLoadHandlers = true;
@@ -387,12 +382,9 @@ export class FastAPI {
 
   afterLoadExecute() {
     if (this.afterLoad) {
-      this.afterLoad.forEach((builder: MakeHandlers | MakeRouters) => {
+      this.afterLoad.forEach((builder: Builder) => {
         builder.onLoad(this);
-
-        if (builder instanceof MakeEvents) {
-          builder.loadEvents();
-        }
+        builder.loadEvents();
       });
     }
   }
@@ -408,12 +400,12 @@ export class FastAPI {
   addRoutes(routes: RoutesType): void {
     if (routes instanceof RoutesBuilder || routes instanceof PathBuilder) {
       this.routes.push(routes.build());
-    } else if (routes instanceof MakeRouters) {
-      this.routes.push(routes.getRoutes());
+    } else if (routes instanceof Builder) {
+      this.routes.push(routes.loadRoutes());
       this.afterLoad?.push(routes);
     } else if (typeof routes === 'function') {
       const builder = new routes();
-      this.routes.push(builder.getRoutes());
+      this.routes.push(builder.loadRoutes());
       this.afterLoad?.push(builder);
     } else {
       this.routes.push(routes);
@@ -421,12 +413,12 @@ export class FastAPI {
   }
 
   addHandlers(handlers: HandlersType): void {
-    if (handlers instanceof MakeHandlers) {
-      this.handlers = { ...this.handlers, ...handlers.getHandlers() };
+    if (handlers instanceof Builder) {
+      this.handlers = { ...this.handlers, ...handlers.loadHandlers() };
       this.afterLoad?.push(handlers);
     } else if (typeof handlers === 'function') {
       const builder = new handlers();
-      this.handlers = { ...this.handlers, ...builder.getHandlers() };
+      this.handlers = { ...this.handlers, ...builder.loadHandlers() };
       this.afterLoad?.push(builder);
     } else {
       this.handlers = { ...this.handlers, ...handlers };
@@ -434,7 +426,7 @@ export class FastAPI {
   }
 
   addEvents(events: EventsType): void {
-    if (events instanceof MakeEvents) {
+    if (events instanceof Builder) {
       this.afterLoad?.push(events);
     } else if (typeof events === 'function') {
       const builder = new events();
@@ -528,31 +520,17 @@ export { HandlerType } from './resources/routes/routes';
 export { FastifyReply as Reply, FastifyRequest as Request };
 export { OpenAPI } from './resources/openapi/openapiTypes';
 
-export {
-  Get,
-  Post,
-  Put,
-  Patch,
-  Delete,
-  MakeRouters
-} from './decorators/routes';
-export {
-  Create,
-  GetAll,
-  GetOne,
-  Update,
-  Remove,
-  MakeHandlers
-} from './decorators/handlers';
+export { Get, Post, Put, Patch, Delete } from './decorators/routes';
+export { Create, GetAll, GetOne, Update, Remove } from './decorators/handlers';
 export {
   OnCreate,
   OnGetAll,
   OnGetOne,
   OnUpdate,
   OnRemove,
-  OnEvent,
-  MakeEvents
+  OnEvent
 } from './decorators/events';
+export { Builder } from './decorators/builder';
 
 export const events = {
   on,

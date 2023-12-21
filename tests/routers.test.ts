@@ -1,9 +1,9 @@
-import { Get, FastAPI, MakeRouters, Reply } from '../src';
+import { Get, FastAPI, Builder, Reply } from '../src';
 import { sequelize, schema } from './utils/message';
 
 describe('MakeRouters', () => {
   it('Test OnLoad MakeRouters', async () => {
-    class MessageRouters extends MakeRouters {
+    class MessageRouters extends Builder {
       message?: string;
 
       onLoad(): void {

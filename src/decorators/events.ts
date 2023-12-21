@@ -1,10 +1,10 @@
 import { TableBuilder } from '../resources/sequelize/builder';
 import 'reflect-metadata';
-import { FastAPI, HandlerType } from '..';
+import { HandlerType } from '..';
 import { SequelizeModel } from '../resources/sequelize';
-import { EventKey, onAction } from '../resources/events';
+import { EventKey } from '../resources/events';
 
-interface CustomEventItem {
+export interface CustomEventItem {
   model: EventKey;
   action: string;
 }
@@ -61,30 +61,4 @@ export function OnRemove(event: EventKey) {
 
 export function OnEvent<T>(model: EventKey, action: T) {
   return innerEventDecorator(model, action);
-}
-
-export class MakeEvents {
-  [key: string]: any;
-
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onLoad(fastAPI: FastAPI) {}
-
-  loadEvents(): void {
-    const controllerMethods = Object.getOwnPropertyNames(
-      Object.getPrototypeOf(this)
-    );
-
-    for (const methodName of controllerMethods) {
-      const events = Reflect.getMetadata(
-        'events',
-        this,
-        methodName
-      ) as CustomEventItem;
-
-      if (events) {
-        onAction(events.model, events.action, this[methodName].bind(this));
-      }
-    }
-  }
 }

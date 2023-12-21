@@ -1,5 +1,5 @@
 import { emitAction, getEventsStorage } from '../src/resources/events';
-import { FastAPI, MakeEvents, OnCreate, OnEvent } from '../src';
+import { FastAPI, OnCreate, OnEvent, Builder } from '../src';
 import { sequelize, schema, Message } from './utils/message';
 
 describe('MakeEvents', () => {
@@ -8,7 +8,7 @@ describe('MakeEvents', () => {
     let onLoaded = false;
     let done = false;
 
-    class MessageEvents extends MakeEvents {
+    class MessageEvents extends Builder {
       onLoad(): void {
         onLoaded = true;
       }
