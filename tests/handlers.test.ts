@@ -1,4 +1,4 @@
-import { Create, FastAPI, Reply, Builder } from '../src';
+import { Builder, Create, FastAPI, Reply } from '../src';
 import { sequelize, schema, Message } from './utils/message';
 
 describe('MakeHandlers', () => {
