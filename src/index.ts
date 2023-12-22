@@ -560,3 +560,5 @@ export const events = {
   emitAction,
   removeAction
 };
+
+export { inject } from './decorators/inject';
