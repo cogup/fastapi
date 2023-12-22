@@ -6,10 +6,10 @@ import {
   Builder,
   Reply,
   Update,
-  Get
+  Get,
+  inject
 } from '../src';
 import { sequelize, schema, Message } from './utils/message';
-import { inject } from '../src/decorators/inject';
 
 describe('Decorators', () => {
   it('Test OnLoad', async () => {
