@@ -9,6 +9,7 @@ import {
   Get
 } from '../src';
 import { sequelize, schema, Message } from './utils/message';
+import { inject } from '../src/decorators/inject';
 
 describe('Decorators', () => {
   it('Test OnLoad', async () => {
@@ -16,6 +17,8 @@ describe('Decorators', () => {
     let onLoaded = false;
     let done = false;
 
+    @inject
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     class MessageTest extends Builder {
       message?: string;
 
@@ -78,8 +81,7 @@ describe('Decorators', () => {
 
     const fastAPI = new FastAPI({
       sequelize,
-      schema,
-      builders: [MessageTest]
+      schema
     });
 
     await fastAPI.sequelize?.sync();

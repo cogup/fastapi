@@ -47,7 +47,7 @@ import {
 import { HandlerResourceTypes, getResourceName } from './decorators/handlers';
 import fs from 'fs';
 import { Builder } from './decorators/builder';
-import { IBuilderClass, loadBuilderClasses } from './decorators/inject';
+import { BuilderInject, loadBuilderClasses } from './decorators/inject';
 
 export function getAppVersion(): string {
   try {
@@ -72,10 +72,11 @@ export interface LoadSpecOptions {
 
 export interface FastAPIOptions {
   routes?: RoutesType[];
-  schema?: Schema | SequelizeResources[] | SchemaModelsBuilder;
-  tags?: Tags;
   handlers?: HandlersType[];
   events?: EventsType[];
+  builders?: (typeof Builder)[];
+  schema?: Schema | SequelizeResources[] | SchemaModelsBuilder;
+  tags?: Tags;
   resources?: Resources;
   sequelize?: Sequelize;
   cors?: Cors;
@@ -87,7 +88,6 @@ export interface FastAPIOptions {
   autoLoadRoutes?: boolean;
   autoLoadHandlers?: boolean;
   autoLoadEvents?: boolean;
-  builders?: BuilderType[];
 }
 
 export interface Cors {
@@ -103,11 +103,10 @@ export type RoutesType =
   | RoutesBuilder
   | PathBuilder
   | typeof Builder
-  | Builder;
-
-export type HandlersType = Handlers | typeof Builder | Builder;
-export type EventsType = typeof Builder | Builder | IBuilderClass;
-export type BuilderType = typeof Builder | Builder | IBuilderClass;
+  | Builder
+  | BuilderInject;
+export type HandlersType = Handlers | typeof Builder | Builder | BuilderInject;
+export type EventsType = typeof Builder | Builder | BuilderInject;
 
 export class FastAPI {
   info: DocInfo = {
@@ -217,6 +216,12 @@ export class FastAPI {
       if (props.events !== undefined) {
         this.rawEvents = props.events;
       }
+
+      if (props.builders) {
+        this.rawEvents.push(...props.builders);
+        this.rawHandlers.push(...props.builders);
+        this.rawRoutes.push(...props.builders);
+      }
     }
 
     this.api = api();
@@ -224,9 +229,9 @@ export class FastAPI {
 
     const builderClasses = loadBuilderClasses();
 
-    this.rawEvents = builderClasses;
-    this.rawHandlers = builderClasses;
-    this.rawRoutes = builderClasses;
+    this.rawEvents.push(...builderClasses);
+    this.rawHandlers.push(...builderClasses);
+    this.rawRoutes.push(...builderClasses);
 
     if (this.autoLoadSchema && this.schema !== undefined) {
       this.loadSchema();
@@ -412,6 +417,9 @@ export class FastAPI {
     } else if (routes instanceof Builder) {
       this.routes.push(routes.loadRoutes());
       this.afterLoad?.push(routes);
+    } else if (routes instanceof BuilderInject) {
+      this.routes.push(routes.builder.loadRoutes());
+      this.afterLoad?.push(routes.builder);
     } else if (typeof routes === 'function') {
       const builder = new routes();
       this.routes.push(builder.loadRoutes());
@@ -425,18 +433,21 @@ export class FastAPI {
     if (handlers instanceof Builder) {
       this.handlers = { ...this.handlers, ...handlers.loadHandlers() };
       this.afterLoad?.push(handlers);
+    } else if (handlers instanceof BuilderInject) {
+      this.handlers = { ...this.handlers, ...handlers.builder.loadHandlers() };
+      this.afterLoad?.push(handlers.builder);
     } else if (typeof handlers === 'function') {
       const builder = new handlers();
       this.handlers = { ...this.handlers, ...builder.loadHandlers() };
       this.afterLoad?.push(builder);
-    } else {
-      this.handlers = { ...this.handlers, ...handlers };
     }
   }
 
   addEvents(events: EventsType): void {
     if (events instanceof Builder) {
       this.afterLoad?.push(events);
+    } else if (events instanceof BuilderInject) {
+      this.afterLoad?.push(events.builder);
     } else if (typeof events === 'function') {
       const builder = new events();
       this.afterLoad?.push(builder);
@@ -549,5 +560,3 @@ export const events = {
   emitAction,
   removeAction
 };
-
-export { builder } from './decorators/inject';
