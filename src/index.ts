@@ -562,3 +562,8 @@ export const events = {
 };
 
 export { inject } from './decorators/inject';
+
+export interface HandlerEventData {
+  request: FastifyRequest;
+  data?: any;
+}
