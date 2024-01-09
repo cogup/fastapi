@@ -4,7 +4,7 @@ import { on, onAction } from '../resources/events';
 import { HandlerItem, getPathByMethod } from './handlers';
 import { CustomActionItem, CustomEventItem } from './events';
 import { RouteItem } from './routes';
-import { Routes } from 'resources/routes';
+import { Routes } from '../resources/routes';
 
 export interface BuilderItems {
   routes?: Routes;
