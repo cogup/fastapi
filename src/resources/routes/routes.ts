@@ -73,12 +73,12 @@ export function getAll(resource: Resource): RouteHandler {
       });
 
       emitAction(resource.model, HandlerType.GET_ALL, null, { request, data });
-    } catch (error) {
-      reply.log.error(error);
+    } catch (err) {
+      reply.log.error(err);
       reply
         .status(500)
         .send({ request, error: `Failed to fetch ${resource.name}.` });
-      emitAction(resource.model, HandlerType.GET_ALL, { request, error });
+      emitAction(resource.model, HandlerType.GET_ALL, err, { request });
     }
   };
 }
@@ -102,12 +102,12 @@ export function getOne(resource: Resource): RouteHandler {
 
       reply.send(data);
       emitAction(resource.model, HandlerType.GET_ONE, null, { request, data });
-    } catch (error) {
-      reply.log.error(error);
+    } catch (err) {
+      reply.log.error(err);
       reply
         .status(500)
         .send({ request, error: `Failed to fetch ${resource.name}.` });
-      emitAction(resource.model, HandlerType.GET_ONE, { request, error });
+      emitAction(resource.model, HandlerType.GET_ONE, err, { request });
     }
   };
 }
@@ -140,10 +140,10 @@ export function create(resource: Resource): RouteHandler {
 
       reply.status(201).send(data);
       emitAction(resource.model, HandlerType.CREATE, null, { request, data });
-    } catch (error) {
-      reply.log.error(error);
+    } catch (err) {
+      reply.log.error(err);
       reply.status(500).send({ error: `Failed to create ${resource.name}.` });
-      emitAction(resource.model, HandlerType.CREATE, { request, error });
+      emitAction(resource.model, HandlerType.CREATE, err, { request });
     }
   };
 }
@@ -181,10 +181,10 @@ export function update(resource: Resource): RouteHandler {
 
       reply.send(data);
       emitAction(resource.model, HandlerType.UPDATE, null, { request, data });
-    } catch (error) {
-      reply.log.error(error);
+    } catch (err) {
+      reply.log.error(err);
       reply.status(500).send({ error: `Failed to update ${resource.name}.` });
-      emitAction(resource.model, HandlerType.UPDATE, { request, error });
+      emitAction(resource.model, HandlerType.UPDATE, err, { request });
     }
   };
 }
@@ -206,10 +206,10 @@ export function remove(resource: Resource): RouteHandler {
         .status(204)
         .send({ message: `${resource.name} deleted successfully.` });
       emitAction(resource.model, HandlerType.REMOVE, null, { request, data });
-    } catch (error) {
-      reply.log.error(error);
+    } catch (err) {
+      reply.log.error(err);
       reply.status(500).send({ error: `Failed to delete ${resource.name}.` });
-      emitAction(resource.model, HandlerType.REMOVE, { request, error });
+      emitAction(resource.model, HandlerType.REMOVE, err, { request });
     }
   };
 }
