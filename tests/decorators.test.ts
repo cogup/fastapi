@@ -113,7 +113,7 @@ describe('Decorators', () => {
 
     expect(onLoaded).toBe(true);
     expect(done).toBe(true);
-    expect(result.dataValues.id).toEqual(1);
+    expect(result.data.dataValues.id).toEqual(1);
     expect(dataCreate.json().message).toEqual('Hello World');
     expect(dataRoute.json().message).toEqual('Hello World');
   });
