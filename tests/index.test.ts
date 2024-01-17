@@ -359,5 +359,104 @@ describe('FastAPI', () => {
         updatedAt: result.updatedAt
       });
     });
+
+    it('Filter in column', async () => {
+      const sequelize = new Sequelize('sqlite::memory:', {
+        logging: false
+      });
+
+      class Posts extends Model {
+        declare id: number;
+        declare title: string;
+        declare content: string;
+        declare status: ['ACTIVE', 'INACTIVE'];
+      }
+
+      Posts.init(
+        {
+          title: {
+            type: DataTypes.STRING,
+            allowNull: false
+          },
+          content: {
+            type: DataTypes.TEXT,
+            allowNull: false
+          },
+          status: {
+            type: DataTypes.ENUM('ACTIVE', 'INACTIVE'),
+            defaultValue: 'ACTIVE'
+          }
+        },
+        {
+          sequelize,
+          modelName: 'Posts',
+          createdAt: true,
+          updatedAt: true
+        }
+      );
+
+      const schema = new SchemaModelsBuilder();
+
+      schema.addResource(Posts, {
+        status: {
+          filter: true
+        }
+      });
+
+      const fastAPI = new FastAPI({
+        schema,
+        sequelize
+      });
+
+      await sequelize.sync({ force: true });
+
+      await fastAPI.api.inject({
+        method: 'POST',
+        url: '/api/posts',
+        payload: {
+          title: 'Why make this?',
+          content: 'You can make this with FastAPI',
+          status: 'ACTIVE'
+        }
+      });
+
+      await fastAPI.api.inject({
+        method: 'POST',
+        url: '/api/posts',
+        payload: {
+          title: 'What is FastAPI?',
+          content: 'You have to know FastAPI',
+          status: 'INACTIVE'
+        }
+      });
+
+      await fastAPI.api.inject({
+        method: 'POST',
+        url: '/api/posts',
+        payload: {
+          title: 'Where is FastAPI?',
+          content: 'No one knows',
+          status: 'ACTIVE'
+        }
+      });
+
+      const data1 = await fastAPI.api.inject({
+        method: 'GET',
+        url: '/api/posts?status=INACTIVE'
+      });
+
+      const item1 = data1.json();
+
+      expect(item1.data.length).toEqual(1);
+
+      const data2 = await fastAPI.api.inject({
+        method: 'GET',
+        url: '/api/posts?status=ACTIVE'
+      });
+
+      const item2 = data2.json();
+
+      expect(item2.data.length).toEqual(2);
+    });
   });
 });

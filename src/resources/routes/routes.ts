@@ -2,7 +2,7 @@ import { superFilter } from './superFilter';
 import { emitAction } from '../events';
 import { Resource } from '../sequelize';
 import { Reply, Request } from '../../index';
-import { Op } from 'sequelize';
+import { Op, WhereOptions } from 'sequelize';
 const { like, iLike } = Op;
 
 export enum HandlerType {
@@ -20,6 +20,7 @@ interface GetAllQuery {
   orderBy?: string;
   page?: string;
   offset?: string;
+  [key: string]: string | undefined;
 }
 
 export type RouteHandler = (
@@ -44,10 +45,25 @@ export function getAll(resource: Resource): RouteHandler {
       const op =
         resource.model.sequelize?.getDialect() === 'postgres' ? iLike : like;
 
-      const searchFilter =
+      const condition = [
         resource.search && searchTerm
           ? superFilter(resource.search, searchTerm, op)
-          : {};
+          : {}
+      ];
+
+      if (resource.filter !== undefined && resource.filter?.length > 0) {
+        for (const filter of resource.filter) {
+          if (query[filter] !== undefined) {
+            condition.push({
+              [filter]: query[filter]
+            });
+          }
+        }
+      }
+
+      const searchFilter: WhereOptions = {
+        [Op.and]: condition
+      };
 
       const data = await resource.model.findAndCountAll({
         where: searchFilter,

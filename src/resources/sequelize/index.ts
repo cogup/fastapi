@@ -17,6 +17,7 @@ export interface Schema {
 export interface Table {
   name: string;
   columns: Column[];
+  filter?: string[];
   search?: string[];
   group?: string;
 }
@@ -61,6 +62,7 @@ export interface ResourceData {
   length?: number;
   decimals?: number;
   description?: string;
+  filter?: boolean;
 }
 
 export interface Column extends ResourceData {
@@ -80,6 +82,7 @@ export interface Resource {
   primaryKey: string | null;
   columns: Record<string, Column>;
   search?: string[];
+  filter?: string[];
   protectedColumns: string[];
   privateColumns: string[];
   noPropagateColumns: string[];
@@ -133,7 +136,7 @@ export function generateResourcesFromSequelizeModels(
             : {}
           : {};
 
-      const { search, ...attrs } = columnResource;
+      const { search, filter, ...attrs } = columnResource;
 
       resource.columns[columnName] = {
         type: ResourceType,
@@ -160,6 +163,14 @@ export function generateResourcesFromSequelizeModels(
         }
 
         resource.search.push(columnName);
+      }
+
+      if (filter) {
+        if (resource.filter === undefined) {
+          resource.filter = [];
+        }
+
+        resource.filter.push(columnName);
       }
 
       if (primaryKey) {
@@ -223,6 +234,7 @@ export function generateResourcesFromJSON(
       primaryKey: null,
       columns: {},
       search: table.search,
+      filter: table.filter,
       name: table.name,
       group: table.group,
       privateColumns,
