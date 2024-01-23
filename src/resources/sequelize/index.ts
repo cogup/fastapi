@@ -2,6 +2,15 @@ import { DataTypes, Model, Sequelize } from 'sequelize';
 import { convertToSingle } from '../openapi/utils';
 import { SchemaModelsBuilder, TableBuilder } from './builder';
 
+function singularize(name: string): string {
+  const lastPosition = name.length - 1;
+  if (name.lastIndexOf('s') === lastPosition) {
+    return name.slice(0, -1).toLocaleLowerCase();
+  }
+
+  return name.toLocaleLowerCase();
+}
+
 export type ResourceValues = string[] | undefined | number;
 
 export type DataTypesResult =
@@ -63,6 +72,7 @@ export interface ResourceData {
   decimals?: number;
   description?: string;
   filter?: boolean;
+  include?: typeof SequelizeModel;
 }
 
 export interface Column extends ResourceData {
@@ -87,6 +97,7 @@ export interface Resource {
   privateColumns: string[];
   noPropagateColumns: string[];
   group?: string;
+  include: Relationship[];
 }
 
 export interface Resources {
@@ -117,7 +128,8 @@ export function generateResourcesFromSequelizeModels(
       columns: {},
       protectedColumns: [],
       privateColumns: [],
-      noPropagateColumns: []
+      noPropagateColumns: [],
+      include: []
     };
 
     const attributes = model.getAttributes();
@@ -175,6 +187,17 @@ export function generateResourcesFromSequelizeModels(
 
       if (primaryKey) {
         resource.primaryKey = columnName;
+      }
+
+      if (resource.columns[columnName].include !== undefined) {
+        resource.include.push({
+          model: resource.columns[columnName].include as typeof SequelizeModel,
+          as: singularize(
+            (
+              resource.columns[columnName].include?.getTableName() as string
+            ).toLowerCase()
+          )
+        });
       }
     }
 

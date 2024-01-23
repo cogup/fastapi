@@ -5,6 +5,27 @@ const sequelize = new Sequelize('sqlite::memory:', {
   logging: false
 });
 
+class Author extends Model {}
+
+Author.init(
+  {
+    id: {
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
+      primaryKey: true,
+      unique: true
+    },
+    name: {
+      type: DataTypes.STRING,
+      allowNull: true
+    }
+  },
+  {
+    sequelize,
+    modelName: 'Author'
+  }
+);
+
 class Message extends Model {}
 
 Message.init(
@@ -18,6 +39,14 @@ Message.init(
     message: {
       type: DataTypes.TEXT,
       allowNull: true
+    },
+    authorId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: Author,
+        key: 'id'
+      }
     }
   },
   {
@@ -26,8 +55,24 @@ Message.init(
   }
 );
 
+Author.hasMany(Message, {
+  foreignKey: 'authorId',
+  as: 'messages'
+});
+
+Message.belongsTo(Author, {
+  foreignKey: 'authorId',
+  as: 'author'
+});
+
 const schema = new SchemaModelsBuilder();
 
-schema.addResource(Message);
+schema.addResource(Author);
 
-export { Message, schema, sequelize };
+schema.addResource(Message, {
+  authorId: {
+    include: Author
+  }
+});
+
+export { Message, Author, schema, sequelize };

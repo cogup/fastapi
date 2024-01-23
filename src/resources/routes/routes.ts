@@ -70,7 +70,8 @@ export function getAll(resource: Resource): RouteHandler {
         offset,
         limit,
         order: [[orderBy, order]],
-        attributes: { exclude: resource.noPropagateColumns }
+        attributes: { exclude: resource.noPropagateColumns },
+        include: resource.include
       });
 
       const totalPages = Math.ceil(data.count / limit);
@@ -96,6 +97,17 @@ export function getAll(resource: Resource): RouteHandler {
         .send({ request, error: `Failed to fetch ${resource.name}.` });
       emitAction(resource.model, HandlerType.GET_ALL, err, { request });
     }
+  };
+}
+
+export interface GetAllResponse {
+  data: any[];
+  meta: {
+    offset: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+    totalItems: number;
   };
 }
 

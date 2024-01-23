@@ -1,6 +1,15 @@
-import { Resource } from '../sequelize';
+import { Resource, Resources } from '../sequelize';
 import { convertType } from './dataTypes';
-import { AdminData, OpenAPI, Properties } from './openapiTypes';
+import {
+  AdminData,
+  MediaType,
+  OpenAPI,
+  Operation,
+  Paths,
+  Properties,
+  Response,
+  Schema
+} from './openapiTypes';
 import { makeResponses } from './responses';
 import { convertToPlural, convertToSingle } from './utils';
 
@@ -416,5 +425,204 @@ export function generateOpenAPISchemas(
         }
       }
     }
+  };
+}
+
+// copy schemas on includes
+export function insertIncludeOnOpenAPISchemas(
+  paths: Paths,
+  resources: Resources
+): Paths {
+  const newPaths: Paths = { ...paths };
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  Object.entries(resources).forEach(([key, value]) => {
+    const { name, include } = value;
+
+    if (include === undefined) {
+      return;
+    }
+
+    const pathsNames = generatePaths(name);
+
+    const pathMany = newPaths[pathsNames.many];
+
+    if (pathMany === undefined) {
+      return;
+    }
+
+    const getAll = pathMany.get;
+
+    if (getAll === undefined) {
+      return;
+    }
+
+    const pathSingle = newPaths[pathsNames.single];
+
+    if (pathSingle === undefined) {
+      return;
+    }
+
+    const getOne = pathSingle.get;
+
+    if (getOne === undefined) {
+      return;
+    }
+
+    const propertiesAll = getPropertiesByOperation(getAll, 200) as any;
+
+    const getAllProperties = {
+      ...propertiesAll.data.items.properties
+    };
+
+    const getOneProperties = getPropertiesByOperation(getOne, 200) as any;
+
+    include.forEach((include) => {
+      const includeProperties = getIncludeProperties(
+        include.model.name,
+        paths,
+        resources
+      );
+
+      getAllProperties[include.as] = {
+        type: 'object',
+        properties: includeProperties
+      };
+
+      getOneProperties[include.as] = {
+        type: 'object',
+        properties: includeProperties
+      };
+    });
+    const newGetAll = resolveNewOperation(
+      getAll,
+      {
+        ...propertiesAll.data,
+        items: {
+          ...propertiesAll.data.items,
+          properties: getAllProperties
+        }
+      },
+      200
+    );
+
+    newPaths[pathsNames.many] = {
+      ...pathMany,
+      get: newGetAll
+    };
+
+    const newGetOne = resolveNewOperation(getOne, getOneProperties, 200);
+
+    newPaths[pathsNames.single] = {
+      ...pathSingle,
+      get: newGetOne
+    };
+  });
+
+  return newPaths;
+}
+
+function resolveNewOperation(
+  get: Operation,
+  properties: SchemaProperties,
+  statusCode: number
+): Operation {
+  const responseOkRaw = get.responses[statusCode] as Response;
+  const responseOkContent = responseOkRaw.content as {
+    [mediaType: string]: MediaType;
+  };
+
+  const newGet = {
+    ...get,
+    responses: {
+      ...get.responses,
+      [statusCode]: {
+        ...responseOkRaw,
+        content: {
+          ...responseOkRaw.content,
+          'application/json': {
+            ...responseOkContent['application/json'],
+            schema: {
+              ...responseOkContent['application/json'].schema,
+              properties
+            }
+          }
+        }
+      }
+    }
+  };
+
+  return newGet;
+}
+
+function getIncludeProperties(
+  target: string,
+  paths: Paths,
+  resources: Resources
+): Schema {
+  const resource = resources[target];
+
+  if (resource === undefined) {
+    return {};
+  }
+
+  const { name, include } = resource;
+
+  if (include === undefined) {
+    return {};
+  }
+
+  const pathsNames = generatePaths(name);
+
+  const path = paths[pathsNames.single];
+
+  if (path === undefined) {
+    return {};
+  }
+
+  const get = path.get;
+
+  if (get === undefined) {
+    return {};
+  }
+
+  return getPropertiesByOperation(get, 200);
+}
+
+function getPropertiesByOperation(
+  operation: Operation,
+  statusCode: number
+): Schema {
+  const response = operation.responses[statusCode] as Response;
+
+  if (response === undefined) {
+    return {};
+  }
+
+  if (response.content === undefined) {
+    return {};
+  }
+
+  const content = response.content['application/json'] as MediaType;
+
+  const schema = content.schema as any;
+
+  if (schema === undefined) {
+    return {};
+  }
+
+  // is Reference?
+  if (schema.$ref !== undefined) {
+    return {};
+  }
+
+  const schemaSchema = schema as Schema;
+
+  if (schemaSchema.properties === undefined) {
+    return {};
+  }
+
+  return schemaSchema.properties as {
+    [property: string]: Schema;
   };
 }

@@ -1,5 +1,9 @@
 import api from './middle/serve';
-import { Tags, generateOpenAPISchemas } from './resources/openapi';
+import {
+  Tags,
+  generateOpenAPISchemas,
+  insertIncludeOnOpenAPISchemas
+} from './resources/openapi';
 import {
   HandlerMethods,
   Methods,
@@ -352,6 +356,8 @@ export class FastAPI {
 
       schemasPaths = { ...schemasPaths, ...paths } as Paths;
     }
+
+    schemasPaths = insertIncludeOnOpenAPISchemas(schemasPaths, resources);
 
     let paths = {} as Paths;
 
