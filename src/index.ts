@@ -25,7 +25,6 @@ import {
   generateResourcesFromJSON,
   generateResourcesFromSequelizeModels
 } from './resources/sequelize';
-import healthRoute from './routes/health';
 import {
   on,
   emit,
@@ -52,6 +51,7 @@ import { HandlerResourceTypes, getResourceName } from './decorators/handlers';
 import fs from 'fs';
 import { Builder } from './decorators/builder';
 import { BuilderInject, loadBuilderClasses } from './decorators/inject';
+import HealthRoute from './routes/health';
 
 export function getAppVersion(): string {
   try {
@@ -366,11 +366,8 @@ export class FastAPI {
       paths = { ...paths, ...routesToPaths(route) };
     });
 
-    const health = healthRoute(this.sequelize as Sequelize);
-
-    createRoutes.createRoutes(health);
-
-    const healthPaths = routesToPaths(health);
+    const health = new HealthRoute();
+    const healthPaths = health.loadRoutes();
 
     const docPaths = {
       ...schemasPaths,

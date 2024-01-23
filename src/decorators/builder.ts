@@ -89,7 +89,6 @@ export class Builder {
         methodName
       ) as RouteItem;
 
-      // add handler to handlers
       if (route) {
         if (!routes[route.route.path]) {
           routes[route.route.path] = {};

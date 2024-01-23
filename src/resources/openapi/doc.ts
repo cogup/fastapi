@@ -1,13 +1,5 @@
 import { convertOpenAPItoSchemas } from './utils';
-import { OpenAPI, Paths, AdminData } from './openapiTypes';
-
-interface PathObject {
-  [path: string]: PathItemObject;
-}
-
-interface PathItemObject {
-  servers?: ServerObject[];
-}
+import { OpenAPI, Paths, AdminData, Path } from './openapiTypes';
 
 export interface ServerObject {
   url: string;
@@ -40,13 +32,49 @@ export function createFullDoc(data: DocData): OpenAPI {
   return convertOpenAPItoSchemas(openapi);
 }
 
-const resolvePaths = (schemas: PathObject): PathObject => {
+const resolvePaths = (schemas: Paths): Paths => {
   Object.keys(schemas).forEach((path) => {
-    schemas[path].servers = [
+    const pathItem = schemas[path] as Path;
+
+    pathItem.servers = [
       {
         url: process.env.APP_URL || 'http://localhost:3000'
       }
     ];
+
+    if (pathItem.get && pathItem.get.handler) {
+      delete pathItem.get.handler;
+    }
+
+    if (pathItem.post && pathItem.post.handler) {
+      delete pathItem.post.handler;
+    }
+
+    if (pathItem.put && pathItem.put.handler) {
+      delete pathItem.put.handler;
+    }
+
+    if (pathItem.delete && pathItem.delete.handler) {
+      delete pathItem.delete.handler;
+    }
+
+    if (pathItem.patch && pathItem.patch.handler) {
+      delete pathItem.patch.handler;
+    }
+
+    if (pathItem.options && pathItem.options.handler) {
+      delete pathItem.options.handler;
+    }
+
+    if (pathItem.head && pathItem.head.handler) {
+      delete pathItem.head.handler;
+    }
+
+    if (pathItem.trace && pathItem.trace.handler) {
+      delete pathItem.trace.handler;
+    }
+
+    schemas[path] = pathItem;
   });
 
   return schemas;

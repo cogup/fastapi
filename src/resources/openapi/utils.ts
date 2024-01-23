@@ -105,18 +105,6 @@ export function convertOpenAPItoSchemas(openAPI: OpenAPI): OpenAPI {
   return openAPI;
 }
 
-export function getReferenceSchemaName(
-  path: string,
-  method: string,
-  statusCode: string | number
-): string {
-  return `#/components/schemas/${getReferenceSchemaNameInner(
-    path,
-    method,
-    statusCode
-  )}`;
-}
-
 function getReferenceSchemaNameInner(
   path: string,
   method: string,

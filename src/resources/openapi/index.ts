@@ -484,18 +484,28 @@ export function insertIncludeOnOpenAPISchemas(
     parametersGeOne.push({
       name: 'include',
       in: 'query',
-      description: `Include ${include.map((i) => i.as).join(', ')}`,
+      description: `Include ${include
+        .map((i) => i.model.name.toLowerCase())
+        .join(', ')}`,
       schema: {
-        type: 'array'
+        type: 'array',
+        items: {
+          type: 'string'
+        }
       }
     } as Parameter);
 
     parametersGetAll.push({
       name: 'include',
       in: 'query',
-      description: `Include ${include.map((i) => i.as).join(', ')}`,
+      description: `Include ${include
+        .map((i) => i.model.name.toLowerCase())
+        .join(', ')}`,
       schema: {
-        type: 'array'
+        type: 'array',
+        items: {
+          type: 'string'
+        }
       }
     } as Parameter);
 
@@ -509,13 +519,15 @@ export function insertIncludeOnOpenAPISchemas(
       getAllProperties[include.as] = {
         type: 'object',
         nullable: true,
-        properties: includeProperties
+        properties: {
+          [include.as]: includeProperties
+        }
       };
 
       getOneProperties[include.as] = {
         type: 'object',
+        nullable: true,
         properties: {
-          nullable: true,
           ...includeProperties
         }
       };
@@ -523,10 +535,13 @@ export function insertIncludeOnOpenAPISchemas(
     const newGetAll = resolveNewOperation(
       getAll,
       {
-        ...propertiesAll.data,
-        items: {
-          ...propertiesAll.data.items,
-          properties: getAllProperties
+        ...propertiesAll,
+        data: {
+          ...propertiesAll.data,
+          items: {
+            ...propertiesAll.data.items,
+            properties: getAllProperties
+          }
         }
       },
       200
@@ -549,19 +564,19 @@ export function insertIncludeOnOpenAPISchemas(
 }
 
 function resolveNewOperation(
-  get: Operation,
+  operator: Operation,
   properties: SchemaProperties,
   statusCode: number
 ): Operation {
-  const responseOkRaw = get.responses[statusCode] as Response;
+  const responseOkRaw = operator.responses[statusCode] as Response;
   const responseOkContent = responseOkRaw.content as {
     [mediaType: string]: MediaType;
   };
 
-  const newGet = {
-    ...get,
+  const newOperator = {
+    ...operator,
     responses: {
-      ...get.responses,
+      ...operator.responses,
       [statusCode]: {
         ...responseOkRaw,
         content: {
@@ -570,15 +585,17 @@ function resolveNewOperation(
             ...responseOkContent['application/json'],
             schema: {
               ...responseOkContent['application/json'].schema,
-              properties
+              properties: {
+                ...properties
+              }
             }
           }
         }
       }
     }
-  };
+  } as Operation;
 
-  return newGet;
+  return newOperator;
 }
 
 function getIncludeProperties(

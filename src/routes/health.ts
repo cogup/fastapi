@@ -1,111 +1,10 @@
 import * as os from 'os';
-import { Routes, RoutesBuilder } from '../resources/routes';
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { Sequelize } from 'sequelize';
-
-const healthRoute = new RoutesBuilder('health');
-const responsesAll = healthRoute.responses(200, {
-  server: {
-    type: 'object',
-    properties: {
-      platform: { type: 'string' },
-      release: { type: 'string' },
-      arch: { type: 'string' },
-      uptime: { type: 'number' },
-      cpus: { type: 'number' }
-    }
-  },
-  memory: {
-    type: 'object',
-    properties: {
-      total: { type: 'number' },
-      free: { type: 'number' },
-      used: { type: 'number' },
-      active: { type: 'number' },
-      available: { type: 'number' }
-    }
-  },
-  process: {
-    type: 'object',
-    properties: {
-      pid: { type: 'number' },
-      uptime: { type: 'number' },
-      versions: { type: 'object' },
-      memoryUsage: { type: 'object' }
-    }
-  },
-  os: {
-    type: 'object',
-    properties: {
-      hostname: { type: 'string' },
-      type: { type: 'string' },
-      platform: { type: 'string' },
-      release: { type: 'string' },
-      arch: { type: 'string' },
-      uptime: { type: 'number' },
-      cpus: { type: 'number' }
-    }
-  },
-  container: {
-    type: 'object',
-    properties: {
-      image: { type: 'string' },
-      version: { type: 'string' },
-      containerId: { type: 'string' }
-    }
-  },
-  database: {
-    type: 'object',
-    properties: {
-      dialect: { type: 'string' },
-      host: { type: 'string' },
-      port: { type: 'number' },
-      database: { type: 'string' },
-      username: { type: 'string' }
-    }
-  },
-  status: { type: 'string' }
-});
-
-export default (sequelize: Sequelize): Routes =>
-  healthRoute
-    .path('/health')
-    .get({
-      tags: ['Health'],
-      summary: 'Get health information',
-      description: 'Get health information',
-      responses: healthRoute.responses(200, {
-        status: { type: 'string' }
-      }),
-      handler: handlerStatus
-    })
-    .path('/health/all')
-    .get({
-      tags: ['Health'],
-      summary: 'Get all health information',
-      description: 'Get all health information',
-      responses: responsesAll,
-      handler: handlerAll(sequelize)
-    })
-    .build();
-
-function handlerStatus(_request: FastifyRequest, reply: FastifyReply) {
-  reply.send({ status: 'UP' });
-}
-
-const handlerAll =
-  (sequelize: Sequelize) =>
-  (_request: FastifyRequest, reply: FastifyReply): void => {
-    reply.send({
-      memory: getMemoryInfo(),
-      process: getProcessInfo(),
-      os: getOsInfo(),
-      database: getDatabaseInfo(sequelize),
-      container: getContainerInfo(),
-      app: getAppInfo(),
-      status: 'UP'
-    } as Response);
-  };
+import { Builder } from '../decorators/builder';
+import { Get } from '../decorators/routes';
+import { makeResponses } from '../resources/openapi/responses';
+import { FastAPI } from 'index';
 
 interface Response {
   status: string;
@@ -247,4 +146,115 @@ function getAppInfo(): AppInfo {
     image,
     version
   };
+}
+
+export default class HealthRoute extends Builder {
+  sequelize?: Sequelize;
+
+  onLoad(fastAPI: FastAPI): void {
+    if (fastAPI.sequelize === undefined) {
+      throw new Error('Sequelize is not defined');
+    }
+
+    this.sequelize = fastAPI.sequelize;
+  }
+
+  @Get({
+    path: '/health',
+    tags: ['Health'],
+    summary: 'Get health information',
+    description: 'Get health information',
+    responses: makeResponses('health', 200, {
+      status: { type: 'string' }
+    })
+  })
+  async health(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+    reply.send({ status: 'UP' });
+  }
+
+  @Get({
+    path: '/health/all',
+    tags: ['Health'],
+    summary: 'Get all health information',
+    description: 'Get all health information',
+    responses: makeResponses('health', 200, {
+      server: {
+        type: 'object',
+        properties: {
+          platform: { type: 'string' },
+          release: { type: 'string' },
+          arch: { type: 'string' },
+          uptime: { type: 'number' },
+          cpus: { type: 'number' }
+        }
+      },
+      memory: {
+        type: 'object',
+        properties: {
+          total: { type: 'number' },
+          free: { type: 'number' },
+          used: { type: 'number' },
+          active: { type: 'number' },
+          available: { type: 'number' }
+        }
+      },
+      process: {
+        type: 'object',
+        properties: {
+          pid: { type: 'number' },
+          uptime: { type: 'number' },
+          versions: { type: 'object' },
+          memoryUsage: { type: 'object' }
+        }
+      },
+      os: {
+        type: 'object',
+        properties: {
+          hostname: { type: 'string' },
+          type: { type: 'string' },
+          platform: { type: 'string' },
+          release: { type: 'string' },
+          arch: { type: 'string' },
+          uptime: { type: 'number' },
+          cpus: { type: 'number' }
+        }
+      },
+      container: {
+        type: 'object',
+        properties: {
+          image: { type: 'string' },
+          version: { type: 'string' },
+          containerId: { type: 'string' }
+        }
+      },
+      database: {
+        type: 'object',
+        properties: {
+          dialect: { type: 'string' },
+          host: { type: 'string' },
+          port: { type: 'number' },
+          database: { type: 'string' },
+          username: { type: 'string' }
+        }
+      },
+      status: { type: 'string' }
+    })
+  })
+  async all(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+    if (this.sequelize === undefined) {
+      return reply.status(500).send({
+        status: 'DOWN'
+      });
+    }
+
+    reply.send({
+      memory: getMemoryInfo(),
+      process: getProcessInfo(),
+      os: getOsInfo(),
+      database: getDatabaseInfo(this.sequelize as Sequelize),
+      container: getContainerInfo(),
+      app: getAppInfo(),
+      status: 'UP'
+    } as Response);
+  }
 }
