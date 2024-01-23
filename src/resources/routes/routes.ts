@@ -20,6 +20,7 @@ interface GetAllQuery {
   orderBy?: string;
   page?: string;
   offset?: string;
+  include?: string;
   [key: string]: string | undefined;
 }
 
@@ -65,13 +66,19 @@ export function getAll(resource: Resource): RouteHandler {
         [Op.and]: condition
       };
 
+      const include_query = query.include?.split(',') || [];
+      const include =
+        include_query.length > 0
+          ? resource.include.filter((item) => include_query.includes(item.as))
+          : [];
+
       const data = await resource.model.findAndCountAll({
         where: searchFilter,
         offset,
         limit,
         order: [[orderBy, order]],
         attributes: { exclude: resource.noPropagateColumns },
-        include: resource.include
+        include
       });
 
       const totalPages = Math.ceil(data.count / limit);

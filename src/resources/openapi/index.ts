@@ -5,6 +5,7 @@ import {
   MediaType,
   OpenAPI,
   Operation,
+  Parameter,
   Paths,
   Properties,
   Response,
@@ -477,6 +478,27 @@ export function insertIncludeOnOpenAPISchemas(
 
     const getOneProperties = getPropertiesByOperation(getOne, 200) as any;
 
+    const parametersGetAll = getAll.parameters ?? [];
+    const parametersGeOne = getOne.parameters ?? [];
+
+    parametersGeOne.push({
+      name: 'include',
+      in: 'query',
+      description: `Include ${include.map((i) => i.as).join(', ')}`,
+      schema: {
+        type: 'array'
+      }
+    } as Parameter);
+
+    parametersGetAll.push({
+      name: 'include',
+      in: 'query',
+      description: `Include ${include.map((i) => i.as).join(', ')}`,
+      schema: {
+        type: 'array'
+      }
+    } as Parameter);
+
     include.forEach((include) => {
       const includeProperties = getIncludeProperties(
         include.model.name,
@@ -486,12 +508,16 @@ export function insertIncludeOnOpenAPISchemas(
 
       getAllProperties[include.as] = {
         type: 'object',
+        nullable: true,
         properties: includeProperties
       };
 
       getOneProperties[include.as] = {
         type: 'object',
-        properties: includeProperties
+        properties: {
+          nullable: true,
+          ...includeProperties
+        }
       };
     });
     const newGetAll = resolveNewOperation(

@@ -33,9 +33,11 @@ describe('Relationship', () => {
 
     const listMessages = await fastAPI.api.inject({
       method: 'GET',
-      url: '/api/messages'
+      url: '/api/messages?include=author'
     });
 
-    expect(listMessages.json().data[0].author.id).toEqual(1);
+    const json = listMessages.json();
+
+    expect(json.data[0].author.id).toEqual(1);
   });
 });
