@@ -33,8 +33,10 @@ export function createFullDoc(data: DocData): OpenAPI {
 }
 
 const resolvePaths = (schemas: Paths): Paths => {
-  Object.keys(schemas).forEach((path) => {
-    const pathItem = schemas[path] as Path;
+  const cloneSchemas = { ...schemas };
+
+  Object.keys(cloneSchemas).forEach((path) => {
+    const pathItem = cloneSchemas[path] as Path;
 
     pathItem.servers = [
       {
@@ -74,8 +76,8 @@ const resolvePaths = (schemas: Paths): Paths => {
       delete pathItem.trace.handler;
     }
 
-    schemas[path] = pathItem;
+    cloneSchemas[path] = pathItem;
   });
 
-  return schemas;
+  return cloneSchemas;
 };

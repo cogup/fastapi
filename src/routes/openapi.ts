@@ -9,8 +9,32 @@ export interface OpenApiBuilded {
   routes: Routes;
 }
 
+export function cloneObject(objeto: any): any {
+  if (objeto === null || typeof objeto !== 'object') {
+    return objeto; // Retorna valores primitivos diretamente
+  }
+
+  if (Array.isArray(objeto)) {
+    // Se for um array, crie uma cópia do array com elementos clonados
+    const novoArray: any[] = [];
+    for (let i = 0; i < objeto.length; i++) {
+      novoArray[i] = cloneObject(objeto[i]);
+    }
+    return novoArray;
+  }
+
+  // Se for um objeto, crie um novo objeto com propriedades clonadas
+  const novoObjeto: any = {};
+  for (const chave in objeto) {
+    if (chave in objeto) {
+      novoObjeto[chave] = cloneObject(objeto[chave]);
+    }
+  }
+  return novoObjeto;
+}
+
 export default function builderOpenapi(data: DocData): OpenApiBuilded {
-  const doc = createFullDoc(data);
+  const doc = createFullDoc(cloneObject(data));
   const openapiSchema = objectToJSONSchema7(doc);
   const route = new RoutesBuilder('openapi');
 

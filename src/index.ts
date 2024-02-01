@@ -399,6 +399,7 @@ export class FastAPI {
     this.openAPISpec = openapi.spec;
 
     createRoutes.createRoutes(openapi.routes);
+    createRoutes.createRoutes(healthPaths);
 
     createRoutes.api.setErrorHandler(function (
       error: any,
