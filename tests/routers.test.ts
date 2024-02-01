@@ -11,7 +11,7 @@ describe('MakeRouters', () => {
       }
 
       @Get({
-        path: '/api/messages/fake',
+        path: '/messages/fake',
         summary: 'Get Message',
         description: 'Get Message',
         tags: ['Message'],
@@ -43,12 +43,13 @@ describe('MakeRouters', () => {
     const fastAPI = new FastAPI({
       sequelize,
       schema,
+      prefix: '/app',
       routes: [MessageRouters]
     });
 
     const data = await fastAPI.api.inject({
       method: 'GET',
-      url: '/api/messages/fake'
+      url: '/app/messages/fake'
     });
 
     expect(data.json()).toEqual({

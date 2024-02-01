@@ -107,25 +107,26 @@ export interface HandlerPaths {
   single: string;
 }
 
-export function generatePaths(name: string): HandlerPaths {
+export function generatePaths(prefix: string, name: string): HandlerPaths {
   const resourceName = name.toLowerCase();
   const pluralName = convertToPlural(resourceName);
 
   return {
-    many: `/api/${pluralName}`,
-    single: `/api/${pluralName}/{id}`
+    many: `${prefix}/${pluralName}`,
+    single: `${prefix}/${pluralName}/{id}`
   };
 }
 
 export function generateOpenAPISchemas(
   resource: Resource,
-  tags: Tags
+  tags: Tags,
+  prefix: string
 ): OpenAPI {
   const { model, columns, search, name, group } = resource;
   const groupName =
     group !== undefined ? group.toLowerCase() : convertToSingle(name);
   group !== undefined ? group.toLowerCase() : convertToSingle(name);
-  const handlerPaths = generatePaths(name);
+  const handlerPaths = generatePaths(prefix, name);
 
   const attributeKeys = Object.keys(model.getAttributes());
   const properties: SchemaProperties = {};
@@ -432,7 +433,8 @@ export function generateOpenAPISchemas(
 // copy schemas on includes
 export function insertIncludeOnOpenAPISchemas(
   paths: Paths,
-  resources: Resources
+  resources: Resources,
+  prefix: string
 ): Paths {
   const newPaths: Paths = { ...paths };
 
@@ -444,7 +446,7 @@ export function insertIncludeOnOpenAPISchemas(
       return;
     }
 
-    const pathsNames = generatePaths(name);
+    const pathsNames = generatePaths(prefix, name);
 
     const pathMany = newPaths[pathsNames.many];
 
@@ -513,7 +515,8 @@ export function insertIncludeOnOpenAPISchemas(
       const includeProperties = getIncludeProperties(
         include.model.name,
         paths,
-        resources
+        resources,
+        prefix
       );
 
       getAllProperties[include.as] = {
@@ -601,7 +604,8 @@ function resolveNewOperation(
 function getIncludeProperties(
   target: string,
   paths: Paths,
-  resources: Resources
+  resources: Resources,
+  prefix: string
 ): Schema {
   const resource = resources[target];
 
@@ -615,7 +619,7 @@ function getIncludeProperties(
     return {};
   }
 
-  const pathsNames = generatePaths(name);
+  const pathsNames = generatePaths(prefix, name);
 
   const path = paths[pathsNames.single];
 

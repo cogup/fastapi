@@ -48,9 +48,10 @@ export function Remove(handler: HandlerResourceTypes) {
 
 export function getPathByMethod(
   resourceName: string,
-  method: HandlerMethodType
+  method: HandlerMethodType,
+  prefix: string
 ): string {
-  const paths = generatePaths(resourceName);
+  const paths = generatePaths(prefix, resourceName);
 
   if (
     method === HandlerMethodType.CREATE ||

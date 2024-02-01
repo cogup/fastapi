@@ -4,6 +4,7 @@ import 'reflect-metadata';
 
 export interface Route extends Operation {
   path: string;
+  prefix?: string;
 }
 
 export interface RouteItem {

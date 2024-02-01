@@ -45,7 +45,7 @@ export class Builder {
     }
   }
 
-  loadHandlers(): Handlers {
+  loadHandlers(prefix: string): Handlers {
     const handlers: Handlers = {};
     const controllerMethods = Object.getOwnPropertyNames(
       Object.getPrototypeOf(this)
@@ -62,7 +62,8 @@ export class Builder {
       if (handler) {
         const path = getPathByMethod(
           handler.resourceName,
-          handler.HandlerMethodType
+          handler.HandlerMethodType,
+          prefix
         );
 
         if (!handlers[handler.resourceName]) {
@@ -76,7 +77,7 @@ export class Builder {
     return handlers;
   }
 
-  loadRoutes(): Routes {
+  loadRoutes(defaultPrefix: string): Routes {
     const routes: Routes = {};
     const controllerMethods = Object.getOwnPropertyNames(
       Object.getPrototypeOf(this)
@@ -90,13 +91,14 @@ export class Builder {
       ) as RouteItem;
 
       if (route) {
-        if (!routes[route.route.path]) {
-          routes[route.route.path] = {};
+        const { path, prefix, ...rest } = route.route;
+        const fixPath = `${prefix ?? defaultPrefix}${path}`;
+
+        if (!routes[fixPath]) {
+          routes[fixPath] = {};
         }
 
-        const { path, ...rest } = route.route;
-
-        routes[path][route.methodType] = {
+        routes[fixPath][route.methodType] = {
           ...rest,
           handler: this[methodName].bind(this)
         };

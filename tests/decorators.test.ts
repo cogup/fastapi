@@ -51,6 +51,7 @@ describe('Decorators', () => {
 
       @Get({
         path: '/test',
+        prefix: '',
         summary: 'Test',
         description: 'Test',
         tags: ['test'],

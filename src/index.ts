@@ -92,6 +92,7 @@ export interface FastAPIOptions {
   autoLoadRoutes?: boolean;
   autoLoadHandlers?: boolean;
   autoLoadEvents?: boolean;
+  prefix?: string;
 }
 
 export interface Cors {
@@ -151,6 +152,7 @@ export class FastAPI {
   autoLoadRoutes = true;
   autoLoadHandlers = true;
   autoLoadEvents = true;
+  prefix = '/api';
 
   constructor(props?: FastAPIOptions) {
     if (props) {
@@ -225,6 +227,10 @@ export class FastAPI {
         this.rawEvents.push(...props.builders);
         this.rawHandlers.push(...props.builders);
         this.rawRoutes.push(...props.builders);
+      }
+
+      if (props.prefix) {
+        this.prefix = props.prefix;
       }
     }
 
@@ -338,7 +344,11 @@ export class FastAPI {
 
     for (const key in this.resources) {
       const resource = resources[key];
-      const openapiSchemas = generateOpenAPISchemas(resource, tags);
+      const openapiSchemas = generateOpenAPISchemas(
+        resource,
+        tags,
+        this.prefix
+      );
       const paths = openapiSchemas.paths as Paths;
       const adminData = openapiSchemas['x-admin'] as AdminData;
 
@@ -357,7 +367,11 @@ export class FastAPI {
       schemasPaths = { ...schemasPaths, ...paths } as Paths;
     }
 
-    schemasPaths = insertIncludeOnOpenAPISchemas(schemasPaths, resources);
+    schemasPaths = insertIncludeOnOpenAPISchemas(
+      schemasPaths,
+      resources,
+      this.prefix
+    );
 
     let paths = {} as Paths;
 
@@ -367,7 +381,7 @@ export class FastAPI {
     });
 
     const health = new HealthRoute();
-    const healthPaths = health.loadRoutes();
+    const healthPaths = health.loadRoutes(this.prefix);
 
     const docPaths = {
       ...schemasPaths,
@@ -418,14 +432,14 @@ export class FastAPI {
     if (routes instanceof RoutesBuilder || routes instanceof PathBuilder) {
       this.routes.push(routes.build());
     } else if (routes instanceof Builder) {
-      this.routes.push(routes.loadRoutes());
+      this.routes.push(routes.loadRoutes(this.prefix));
       this.afterLoad?.push(routes);
     } else if (routes instanceof BuilderInject) {
-      this.routes.push(routes.builder.loadRoutes());
+      this.routes.push(routes.builder.loadRoutes(this.prefix));
       this.afterLoad?.push(routes.builder);
     } else if (typeof routes === 'function') {
       const builder = new routes();
-      this.routes.push(builder.loadRoutes());
+      this.routes.push(builder.loadRoutes(this.prefix));
       this.afterLoad?.push(builder);
     } else {
       this.routes.push(routes);
@@ -434,14 +448,23 @@ export class FastAPI {
 
   addHandlers(handlers: HandlersType): void {
     if (handlers instanceof Builder) {
-      this.handlers = { ...this.handlers, ...handlers.loadHandlers() };
+      this.handlers = {
+        ...this.handlers,
+        ...handlers.loadHandlers(this.prefix)
+      };
       this.afterLoad?.push(handlers);
     } else if (handlers instanceof BuilderInject) {
-      this.handlers = { ...this.handlers, ...handlers.builder.loadHandlers() };
+      this.handlers = {
+        ...this.handlers,
+        ...handlers.builder.loadHandlers(this.prefix)
+      };
       this.afterLoad?.push(handlers.builder);
     } else if (typeof handlers === 'function') {
       const builder = new handlers();
-      this.handlers = { ...this.handlers, ...builder.loadHandlers() };
+      this.handlers = {
+        ...this.handlers,
+        ...builder.loadHandlers(this.prefix)
+      };
       this.afterLoad?.push(builder);
     }
   }
