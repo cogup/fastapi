@@ -217,7 +217,8 @@ export default class HealthRoute extends Builder {
           arch: { type: 'string' },
           uptime: { type: 'number' },
           cpus: { type: 'number' }
-        }
+        },
+        nullable: true
       },
       container: {
         type: 'object',
@@ -225,7 +226,8 @@ export default class HealthRoute extends Builder {
           image: { type: 'string' },
           version: { type: 'string' },
           containerId: { type: 'string' }
-        }
+        },
+        nullable: true
       },
       database: {
         type: 'object',
@@ -235,23 +237,21 @@ export default class HealthRoute extends Builder {
           port: { type: 'number' },
           database: { type: 'string' },
           username: { type: 'string' }
-        }
+        },
+        nullable: true
       },
       status: { type: 'string' }
     })
   })
   async all(request: FastifyRequest, reply: FastifyReply): Promise<void> {
-    if (this.sequelize === undefined) {
-      return reply.status(500).send({
-        status: 'DOWN'
-      });
-    }
-
     reply.send({
       memory: getMemoryInfo(),
       process: getProcessInfo(),
       os: getOsInfo(),
-      database: getDatabaseInfo(this.sequelize as Sequelize),
+      database:
+        this.sequelize !== undefined
+          ? getDatabaseInfo(this.sequelize as Sequelize)
+          : null,
       container: getContainerInfo(),
       app: getAppInfo(),
       status: 'UP'
