@@ -389,12 +389,15 @@ export class FastAPI {
       ...paths
     };
 
-    const openapi = builderOpenapi({
-      paths: docPaths,
-      info: this.info,
-      servers: this.servers,
-      admin: adminsData
-    });
+    const openapi = builderOpenapi(
+      {
+        paths: docPaths,
+        info: this.info,
+        servers: this.servers,
+        admin: adminsData
+      },
+      this.prefix
+    );
 
     this.openAPISpec = openapi.spec;
 

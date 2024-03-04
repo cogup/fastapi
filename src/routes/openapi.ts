@@ -33,7 +33,10 @@ export function cloneObject(objeto: any): any {
   return novoObjeto;
 }
 
-export default function builderOpenapi(data: DocData): OpenApiBuilded {
+export default function builderOpenapi(
+  data: DocData,
+  prefix: string
+): OpenApiBuilded {
   const doc = createFullDoc(cloneObject(data));
   const openapiSchema = objectToJSONSchema7(doc);
   const route = new RoutesBuilder('openapi');
@@ -46,7 +49,7 @@ export default function builderOpenapi(data: DocData): OpenApiBuilded {
   };
 
   const routes = route
-    .path('/openapi.json')
+    .path(`${prefix}/openapi.json`)
     .get({
       ...openAPISpec,
       handler: (_request, reply: FastifyReply): void => {

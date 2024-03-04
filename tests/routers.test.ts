@@ -55,5 +55,12 @@ describe('MakeRouters', () => {
     expect(data.json()).toEqual({
       message: 'Hello World'
     });
+
+    const data2 = await fastAPI.api.inject({
+      method: 'GET',
+      url: '/app/openapi.json'
+    });
+
+    expect(data2.statusCode).toEqual(200);
   });
 });
