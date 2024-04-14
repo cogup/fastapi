@@ -239,7 +239,7 @@ export class FastAPI {
     this.listenFn = promisify(this.api.listen.bind(this.api));
 
     loadControllers(process.cwd()).forEach((controller) => {
-      this.api.log.info(`Loading controller: ${controller.name}`);
+      this.api.log.info(`Loading controller: ${controller}`);
     });
 
     const builderClasses = loadBuilderClasses();
