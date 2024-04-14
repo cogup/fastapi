@@ -1,38 +1,38 @@
 import api from './middle/serve';
 import {
-  Tags,
   generateOpenAPISchemas,
-  insertIncludeOnOpenAPISchemas
+  insertIncludeOnOpenAPISchemas,
+  Tags
 } from './resources/openapi';
 import {
+  Controllers,
+  CreateRoutes,
   HandlerMethods,
+  HandlerMethodType,
+  Handlers,
   Methods,
   PathBuilder,
   Route,
-  Controllers,
   RoutesBuilder,
-  CreateRoutes,
-  routesToPaths,
-  Handlers,
-  HandlerMethodType
+  routesToPaths
 } from './resources/controllers';
 import {
+  generateResourcesFromJSON,
+  generateResourcesFromSequelizeModels,
   Resource,
   Resources,
   Schema,
   SequelizeModel,
-  SequelizeResources,
-  generateResourcesFromJSON,
-  generateResourcesFromSequelizeModels
+  SequelizeResources
 } from './resources/sequelize';
 import {
-  on,
   emit,
-  remove,
+  emitAction,
   EventCallback,
   EventKey,
+  on,
   onAction,
-  emitAction,
+  remove,
   removeAction
 } from './resources/events';
 import { AdminData, OpenAPI, Paths } from './resources/openapi/openapiTypes';
@@ -47,11 +47,12 @@ import {
   FastifyReply,
   FastifyRequest
 } from 'fastify';
-import { HandlerResourceTypes, getResourceName } from './decorators/handlers';
+import { getResourceName, HandlerResourceTypes } from './decorators/handlers';
 import fs from 'fs';
 import { Builder } from './decorators/builder';
 import { BuilderInject, loadBuilderClasses } from './decorators/inject';
 import HealthRoute from './controllers/health';
+import { loadControllers } from './controllers/loader';
 
 export function getAppVersion(): string {
   try {
@@ -236,6 +237,10 @@ export class FastAPI {
 
     this.api = api();
     this.listenFn = promisify(this.api.listen.bind(this.api));
+
+    loadControllers(process.cwd()).forEach((controller) => {
+      this.api.log.info(`Loading controller: ${controller.name}`);
+    });
 
     const builderClasses = loadBuilderClasses();
 
