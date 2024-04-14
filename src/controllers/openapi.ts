@@ -1,12 +1,12 @@
 import { FastifyReply } from 'fastify';
 import { DocData, createFullDoc } from '../resources/openapi/doc';
 import { OpenAPI, Properties } from '../resources/openapi/openapiTypes';
-import { Routes, RoutesBuilder } from '../resources/routes';
+import { Controllers, RoutesBuilder } from '../resources/controllers';
 import { JSONSchema7 } from 'json-schema';
 
 export interface OpenApiBuilded {
   spec: OpenAPI;
-  routes: Routes;
+  controllers: Controllers;
 }
 
 export function cloneObject(objeto: any): any {
@@ -48,7 +48,7 @@ export default function builderOpenapi(
     responses: route.responses(200, openapiSchema.properties as Properties)
   };
 
-  const routes = route
+  const controllers = route
     .path(`${prefix}/openapi.json`)
     .get({
       ...openAPISpec,
@@ -60,7 +60,7 @@ export default function builderOpenapi(
 
   return {
     spec: doc,
-    routes
+    controllers
   };
 }
 

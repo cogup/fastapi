@@ -1,5 +1,5 @@
 import { Operation } from '../resources/openapi/openapiTypes';
-import { MethodType } from '../resources/routes';
+import { MethodType } from '../resources/controllers';
 import 'reflect-metadata';
 
 export interface Route extends Operation {

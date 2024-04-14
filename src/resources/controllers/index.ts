@@ -1,17 +1,17 @@
-import { getAll, getOne, create, update, remove, RouteHandler } from './routes';
+import { create, getAll, getOne, remove, RouteHandler, update } from './routes';
 import { Resource } from '../sequelize';
 import {
+  AdminData,
   Operation,
   Parameter,
   Path,
   Paths,
+  Properties,
   Reference,
   RequestBody,
-  Responses,
-  Schema,
   Response,
-  Properties,
-  AdminData
+  Responses,
+  Schema
 } from '../openapi/openapiTypes';
 import { FastifyInstance, RouteOptions } from 'fastify';
 import { makeResponses } from '../openapi/responses';
@@ -70,7 +70,7 @@ function getOperations(value: Path): InnerOperation {
   };
 }
 
-export interface Routes {
+export interface Controllers {
   [path: string]: Methods;
 }
 
@@ -86,12 +86,12 @@ export interface Route extends Operation {
   handler: RouteHandler;
 }
 
-export function routesToPaths(routes: Routes): Paths {
+export function routesToPaths(controllers: Controllers): Paths {
   const paths: Paths = {};
 
-  Object.keys(routes).forEach((path) => {
+  Object.keys(controllers).forEach((path) => {
     paths[path] = {};
-    const route = routes[path];
+    const route = controllers[path];
 
     if (route.get) {
       const { ...get } = route.get;
@@ -203,14 +203,14 @@ export class PathBuilder {
     );
   }
 
-  build(): Routes {
+  build(): Controllers {
     this.buildPath();
     return this.parent.build();
   }
 }
 
 export class RoutesBuilder {
-  private routes: Routes = {};
+  private controllers: Controllers = {};
   private resourceName: string;
 
   constructor(resourceName?: string) {
@@ -218,11 +218,11 @@ export class RoutesBuilder {
   }
 
   addRoute(path: string, method: MethodType, route: Route) {
-    if (!this.routes[path]) {
-      this.routes[path] = {};
+    if (!this.controllers[path]) {
+      this.controllers[path] = {};
     }
 
-    this.routes[path][method] = route;
+    this.controllers[path][method] = route;
   }
 
   path(path: string): PathBuilder {
@@ -243,8 +243,8 @@ export class RoutesBuilder {
     );
   }
 
-  build(): Routes {
-    return this.routes;
+  build(): Controllers {
+    return this.controllers;
   }
 }
 
@@ -262,13 +262,15 @@ export class CreateRoutes {
     this.api = api;
   }
 
-  createRoutes(routes: Routes) {
-    Object.entries(routes).forEach(([path, methods]: [string, Methods]) => {
-      Object.entries(methods).forEach(([method, route]: [string, Route]) => {
-        const { handler, ...operation } = route;
-        this.createRouteInner({ path, method, operation, handler });
-      });
-    });
+  createRoutes(controllers: Controllers) {
+    Object.entries(controllers).forEach(
+      ([path, methods]: [string, Methods]) => {
+        Object.entries(methods).forEach(([method, route]: [string, Route]) => {
+          const { handler, ...operation } = route;
+          this.createRouteInner({ path, method, operation, handler });
+        });
+      }
+    );
   }
 
   createRouteResource({ paths, resource, handlers, adminData }: ResourceProps) {

@@ -1,5 +1,5 @@
 import { RouteHandler } from 'fastify';
-import { InnerOperation } from '../routes';
+import { InnerOperation } from '../controllers';
 import { OpenAPI, Operation, Response, Parameter, Path } from './openapiTypes';
 
 export function extractByMethod(
