@@ -1,5 +1,5 @@
 import { generatePaths } from '../resources/openapi/index';
-import { HandlerMethodType } from '../resources/routes';
+import { HandlerMethodType } from '../resources/controllers';
 import { TableBuilder } from '../resources/sequelize/builder';
 import 'reflect-metadata';
 import { SequelizeModel } from '../resources/sequelize';

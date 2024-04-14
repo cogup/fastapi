@@ -1,7 +1,7 @@
 import { FastifyReply } from 'fastify';
 import { DocData, createFullDoc } from '../resources/openapi/doc';
 import { OpenAPI, Properties } from '../resources/openapi/openapiTypes';
-import { Controllers, RoutesBuilder } from '../resources/routes';
+import { Controllers, RoutesBuilder } from '../resources/controllers';
 import { JSONSchema7 } from 'json-schema';
 
 export interface OpenApiBuilded {

@@ -15,7 +15,7 @@ import {
   routesToPaths,
   Handlers,
   HandlerMethodType
-} from './resources/routes';
+} from './resources/controllers';
 import {
   Resource,
   Resources,
@@ -547,7 +547,7 @@ export class FastAPI {
   }
 }
 
-export { PathBuilder, RoutesBuilder } from './resources/routes';
+export { PathBuilder, RoutesBuilder } from './resources/controllers';
 export { makeResponses } from './resources/openapi/responses';
 export {
   SchemaBuilder,
@@ -565,7 +565,7 @@ export {
   HandlerMethodType,
   Handlers
 };
-export { HandlerType } from './resources/routes/routes';
+export { HandlerType } from './resources/controllers/routes';
 
 export { FastifyReply as Reply, FastifyRequest as Request };
 export { OpenAPI } from './resources/openapi/openapiTypes';
