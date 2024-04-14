@@ -4,10 +4,10 @@ import { on, onAction } from '../resources/events';
 import { HandlerItem, getPathByMethod } from './handlers';
 import { CustomActionItem, CustomEventItem } from './events';
 import { RouteItem } from './routes';
-import { Routes } from '../resources/routes';
+import { Controllers } from '../resources/routes';
 
 export interface BuilderItems {
-  routes?: Routes;
+  routes?: Controllers;
   handlers?: Handlers;
 }
 
@@ -77,8 +77,8 @@ export class Builder {
     return handlers;
   }
 
-  loadRoutes(defaultPrefix: string): Routes {
-    const routes: Routes = {};
+  loadRoutes(defaultPrefix: string): Controllers {
+    const controllers: Controllers = {};
     const controllerMethods = Object.getOwnPropertyNames(
       Object.getPrototypeOf(this)
     );
@@ -94,16 +94,16 @@ export class Builder {
         const { path, prefix, ...rest } = route.route;
         const fixPath = `${prefix ?? defaultPrefix}${path}`;
 
-        if (!routes[fixPath]) {
-          routes[fixPath] = {};
+        if (!controllers[fixPath]) {
+          controllers[fixPath] = {};
         }
 
-        routes[fixPath][route.methodType] = {
+        controllers[fixPath][route.methodType] = {
           ...rest,
           handler: this[methodName].bind(this)
         };
       }
     }
-    return routes;
+    return controllers;
   }
 }

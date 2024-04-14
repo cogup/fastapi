@@ -9,7 +9,7 @@ import {
   Methods,
   PathBuilder,
   Route,
-  Routes,
+  Controllers,
   RoutesBuilder,
   CreateRoutes,
   routesToPaths,
@@ -39,7 +39,7 @@ import { AdminData, OpenAPI, Paths } from './resources/openapi/openapiTypes';
 import { Sequelize } from 'sequelize';
 import { promisify } from 'util';
 import { DocInfo, ServerObject } from './resources/openapi/doc';
-import builderOpenapi from './routes/openapi';
+import builderOpenapi from './controllers/openapi';
 import { SchemaModelsBuilder } from './resources/sequelize/builder';
 import {
   FastifyInstance,
@@ -51,7 +51,7 @@ import { HandlerResourceTypes, getResourceName } from './decorators/handlers';
 import fs from 'fs';
 import { Builder } from './decorators/builder';
 import { BuilderInject, loadBuilderClasses } from './decorators/inject';
-import HealthRoute from './routes/health';
+import HealthRoute from './controllers/health';
 
 export function getAppVersion(): string {
   try {
@@ -70,7 +70,7 @@ export function getAppVersion(): string {
 export interface LoadSpecOptions {
   resources: Resources;
   tags?: Tags;
-  routes?: Routes[];
+  routes?: Controllers[];
   handlers?: HandlerMethods;
 }
 
@@ -104,7 +104,7 @@ export interface Models {
 }
 
 export type RoutesType =
-  | Routes
+  | Controllers
   | RoutesBuilder
   | PathBuilder
   | typeof Builder
@@ -125,7 +125,7 @@ export class FastAPI {
     host: '0.0.0.0'
   };
   private rawRoutes: RoutesType[] = [];
-  routes: Routes[] = [];
+  controllers: Controllers[] = [];
   tags: Tags = {
     create: ['Creates'],
     read: ['Reads'],
@@ -375,7 +375,7 @@ export class FastAPI {
 
     let paths = {} as Paths;
 
-    this.routes.forEach((route) => {
+    this.controllers.forEach((route) => {
       createRoutes.createRoutes({ ...route });
       paths = { ...paths, ...routesToPaths(route) };
     });
@@ -401,7 +401,7 @@ export class FastAPI {
 
     this.openAPISpec = openapi.spec;
 
-    createRoutes.createRoutes(openapi.routes);
+    createRoutes.createRoutes(openapi.controllers);
     createRoutes.createRoutes(healthPaths);
 
     createRoutes.api.setErrorHandler(function (
@@ -434,19 +434,19 @@ export class FastAPI {
 
   addRoutes(routes: RoutesType): void {
     if (routes instanceof RoutesBuilder || routes instanceof PathBuilder) {
-      this.routes.push(routes.build());
+      this.controllers.push(routes.build());
     } else if (routes instanceof Builder) {
-      this.routes.push(routes.loadRoutes(this.prefix));
+      this.controllers.push(routes.loadRoutes(this.prefix));
       this.afterLoad?.push(routes);
     } else if (routes instanceof BuilderInject) {
-      this.routes.push(routes.builder.loadRoutes(this.prefix));
+      this.controllers.push(routes.builder.loadRoutes(this.prefix));
       this.afterLoad?.push(routes.builder);
     } else if (typeof routes === 'function') {
       const builder = new routes();
-      this.routes.push(builder.loadRoutes(this.prefix));
+      this.controllers.push(builder.loadRoutes(this.prefix));
       this.afterLoad?.push(builder);
     } else {
-      this.routes.push(routes);
+      this.controllers.push(routes);
     }
   }
 
