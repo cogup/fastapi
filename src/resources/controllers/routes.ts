@@ -3,6 +3,7 @@ import { emitAction } from '../events';
 import { Resource } from '../sequelize';
 import { Reply, Request } from '../../index';
 import { Op, WhereOptions } from 'sequelize';
+
 const { like, iLike } = Op;
 
 export enum HandlerType {
@@ -206,10 +207,9 @@ export function update(resource: Resource): RouteHandler {
         return;
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { id, createdAt, updatedAt, ...dataValues } = data.dataValues;
-
-      await data.update({ ...dataValues, ...body });
+      await data.update(body, {
+        fields: Object.keys(body)
+      });
 
       if (resource.noPropagateColumns.length) {
         for (const column of resource.noPropagateColumns) {
