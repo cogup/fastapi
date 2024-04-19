@@ -206,7 +206,10 @@ export function update(resource: Resource): RouteHandler {
         return;
       }
 
-      await data.update(body);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { id, createdAt, updatedAt, ...dataValues } = data.dataValues;
+
+      await data.update({ ...dataValues, ...body });
 
       if (resource.noPropagateColumns.length) {
         for (const column of resource.noPropagateColumns) {
