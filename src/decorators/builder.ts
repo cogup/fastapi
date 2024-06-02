@@ -17,6 +17,10 @@ export class Builder {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onLoad(fastAPI: FastAPI) {}
 
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  preLoad(fastAPI: FastAPI) {}
+
   loadEvents(): void {
     const controllerMethods = Object.getOwnPropertyNames(
       Object.getPrototypeOf(this)

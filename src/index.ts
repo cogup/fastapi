@@ -441,13 +441,16 @@ export class FastAPI {
     if (routes instanceof RoutesBuilder || routes instanceof PathBuilder) {
       this.controllers.push(routes.build());
     } else if (routes instanceof Builder) {
+      routes.preLoad(this);
       this.controllers.push(routes.loadRoutes(this.prefix));
       this.afterLoad?.push(routes);
     } else if (routes instanceof BuilderInject) {
+      routes.builder.preLoad(this);
       this.controllers.push(routes.builder.loadRoutes(this.prefix));
       this.afterLoad?.push(routes.builder);
     } else if (typeof routes === 'function') {
       const builder = new routes();
+      builder.preLoad(this);
       this.controllers.push(builder.loadRoutes(this.prefix));
       this.afterLoad?.push(builder);
     } else {
